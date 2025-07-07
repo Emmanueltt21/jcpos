@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- TODO Remove the following two lines to disable backup rules enforcement -->
+    <include domain="sharedpref" path="."/>
+    <exclude domain="database" path="jetbrains_compose_highlighter_settings.xml"/>
+</full-backup-content>
