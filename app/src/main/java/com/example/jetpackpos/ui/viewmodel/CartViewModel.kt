@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull // Added import
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -99,7 +100,7 @@ class CartViewModel @Inject constructor(
                 // For more robust stock checking during cart updates, we might need to re-fetch product.
                 // For now, let's assume CartItem.availableStock is sufficient for this check.
                 // Or, better yet, use the product's original full stock quantity as the limit.
-                val product = productRepository.getProductById(productId).kotlinx.coroutines.flow.firstOrNull()
+                val product = productRepository.getProductById(productId).firstOrNull() // Corrected
                 val actualAvailableStock = product?.quantity ?: itemToUpdate.availableStock // Fallback to cart item's stock
 
                 if (newQuantity > actualAvailableStock) {
@@ -186,7 +187,7 @@ class CartViewModel @Inject constructor(
             // For an offline app, the data might not change rapidly, but it's good practice.
             var stockIssueFound = false
             for (item in currentCartState.items) {
-                val product = productRepository.getProductById(item.productId).kotlinx.coroutines.flow.firstOrNull()
+                val product = productRepository.getProductById(item.productId).firstOrNull() // Corrected
                 if (product == null || product.quantity < item.quantityInCart) {
                     _cartEvents.emit(CartEvent.StockUnavailable(
                         item.productName,
@@ -241,8 +242,8 @@ class CartViewModel @Inject constructor(
                 // With Room, we do it sequentially. If stock update fails, order is still placed.
                 // More robust systems might use a two-phase commit or compensating transactions.
                 // For this offline app, sequential is acceptable.
-                currentCartState.items.forEach { cartItem ->
-                    val product = productRepository.getProductById(cartItem.productId).kotlinx.coroutines.flow.firstOrNull()
+                validatedCartState.items.forEach { cartItem -> // Changed from currentCartState to validatedCartState
+                    val product = productRepository.getProductById(cartItem.productId).firstOrNull() // Corrected
                     if (product != null) {
                         val newQuantity = product.quantity - cartItem.quantityInCart
                         productRepository.updateStock(cartItem.productId, newQuantity.coerceAtLeast(0))

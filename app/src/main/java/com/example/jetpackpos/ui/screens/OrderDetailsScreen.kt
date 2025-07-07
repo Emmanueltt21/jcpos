@@ -30,7 +30,6 @@ import java.util.Locale
 fun OrderDetailsScreen(
     navController: NavController,
     viewModel: OrderDetailsViewModel = hiltViewModel()
-    // orderId is now handled by the ViewModel via SavedStateHandle
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale.getDefault()) }

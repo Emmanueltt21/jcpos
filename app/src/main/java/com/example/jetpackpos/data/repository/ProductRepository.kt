@@ -3,6 +3,7 @@ package com.example.jetpackpos.data.repository
 import com.example.jetpackpos.data.db.ProductDao
 import com.example.jetpackpos.data.model.Product
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull // Added import
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,7 +47,7 @@ class ProductRepository @Inject constructor(private val productDao: ProductDao) 
         // However, the current DAO getProductBySku doesn't support excluding an ID.
         // For simplicity, we can fetch the product by SKU and then check its ID.
         // A more optimized DAO method could be created if this becomes a performance bottleneck.
-        val product = kotlinx.coroutines.flow.firstOrNull(productDao.getProductBySku(sku))
+        val product = productDao.getProductBySku(sku).firstOrNull() // Corrected usage
         return product != null && (currentProductId == null || product.id != currentProductId)
     }
 
