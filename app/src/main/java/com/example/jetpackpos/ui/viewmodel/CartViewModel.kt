@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.example.jetpackpos.data.repository.OrderRepository
+
 
 data class CartUiState(
     val items: List<CartItem> = emptyList(),
@@ -23,7 +25,6 @@ data class CartUiState(
     val total: Double = 0.0
 )
 
-import com.example.jetpackpos.data.repository.OrderRepository
 
 sealed class CartEvent {
     data class ItemAdded(val productName: String) : CartEvent()

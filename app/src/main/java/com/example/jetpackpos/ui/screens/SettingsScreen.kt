@@ -2,7 +2,7 @@ package com.example.jetpackpos.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,7 +64,7 @@ fun SettingsScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                 modifier = Modifier.fillMaxWidth(0.8f)
             ) {
-                Icon(Icons.Filled.DeleteForever, contentDescription = "Reset Database Icon", modifier = Modifier.padding(end = 8.dp))
+                Icon(Icons.Rounded.Delete, contentDescription = "Reset Database Icon", modifier = Modifier.padding(end = 8.dp))
                 Text("Reset Database")
             }
              Text(

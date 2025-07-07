@@ -1,16 +1,16 @@
 package com.example.jetpackpos.ui.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.PointOfSale
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.rounded.AccountBox
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.MailOutline
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector? = null) {
-    object Inventory : Screen("inventory", "Inventory", Icons.Filled.Inventory)
-    object Sales : Screen("sales", "Sales", Icons.Filled.PointOfSale)
-    object Transactions : Screen("transactions", "Transactions", Icons.Filled.Assessment)
+    object Inventory : Screen("inventory", "Inventory", Icons.Rounded.AccountBox)
+    object Sales : Screen("sales", "Sales", Icons.Rounded.MailOutline)
+    object Transactions : Screen("transactions", "Transactions", Icons.Rounded.AccountCircle)
     object Settings : Screen("settings", "Settings", Icons.Filled.Settings)
 
     // Product specific screens (will not be on bottom bar)
