@@ -56,21 +56,17 @@ fun AppNavigationGraph(
         composable(
             route = Screen.ProductDetails.route, // Uses "product_details/{productId}"
             arguments = listOf(navArgument(Screen.ProductDetails.ARG_PRODUCT_ID) { type = NavType.LongType })
-        ) { backStackEntry ->
-            ProductDetailsScreen(
-                navController = navController,
-                productId = backStackEntry.arguments!!.getLong(Screen.ProductDetails.ARG_PRODUCT_ID)
-            )
+        ) {
+            // ProductId is obtained by ViewModel via SavedStateHandle
+            ProductDetailsScreen(navController = navController)
         }
 
         composable(
             route = Screen.OrderDetails.route, // Uses "order_details/{orderId}"
             arguments = listOf(navArgument(Screen.OrderDetails.ARG_ORDER_ID) { type = NavType.LongType })
-        ) { backStackEntry ->
-            OrderDetailsScreen(
-                navController = navController,
-                orderId = backStackEntry.arguments!!.getLong(Screen.OrderDetails.ARG_ORDER_ID)
-            )
+        ) {
+            // OrderId is obtained by ViewModel via SavedStateHandle
+            OrderDetailsScreen(navController = navController)
         }
     }
 }
