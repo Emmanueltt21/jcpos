@@ -28,6 +28,9 @@ data class Product(
     @ColumnInfo(name = "category")
     val category: String,
 
+    @ColumnInfo(name = "description")
+    val description: String? = null,
+
     @ColumnInfo(name = "image_uri")
     val imageUri: String? = null // Store path or URL to the image
 ) {

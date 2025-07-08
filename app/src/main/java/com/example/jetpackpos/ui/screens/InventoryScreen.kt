@@ -4,13 +4,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -21,7 +18,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -43,14 +39,33 @@ fun InventoryScreen(
     val searchQuery by viewModel.searchQuery.collectAsState()
     var showDeleteDialog by remember { mutableStateOf<Product?>(null) }
 
+import androidx.compose.material.icons.filled.UploadFile // For Export
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+
+
+    val context = LocalContext.current // For Toast message
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Inventory Management") })
+            TopAppBar(
+                title = { Text("Inventory Management") },
+                actions = {
+                    IconButton(onClick = {
+                        Toast.makeText(context, "Export to Excel - Not Implemented Yet", Toast.LENGTH_LONG).show()
+                    }) {
+                        Icon(Icons.Filled.UploadFile, contentDescription = "Export to Excel")
+                    }
+                }
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { navController.navigate(Screen.AddEditProduct.routeWithArgs()) }) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Product")
             }
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 
         }
     ) { paddingValues ->
@@ -149,7 +164,7 @@ fun InventoryScreen(
                 )
             }
         }
-
+    }
 }
 
 @Composable
@@ -157,6 +172,10 @@ fun ProductListItem(
     product: Product,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
+import androidx.compose.material.icons.filled.Image // Placeholder icon
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape // Added import
+
     onClick: () -> Unit
 ) {
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault()) // Adjust locale as needed
@@ -171,17 +190,44 @@ fun ProductListItem(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically
+            // Removed Arrangement.SpaceBetween to allow image placeholder more defined space
         ) {
+            // Placeholder for Image
+            Box(
+                modifier = Modifier
+                    .size(64.dp) // Fixed size for the image placeholder
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                // If product.imageUri is available and not blank, you'd use an Image composable (e.g., Coil)
+                // For now, a placeholder icon:
+                Icon(
+                    imageVector = Icons.Filled.Image,
+                    contentDescription = "Product Image Placeholder",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("SKU: ${product.sku}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("Category: ${product.category}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                product.description?.takeIf { it.isNotBlank() }?.let {
+                    Text(
+                        "Desc: ${it.take(30)}${if (it.length > 30) "..." else ""}", // Show a snippet
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
             }
+
             Spacer(modifier = Modifier.width(16.dp))
-            Column(horizontalAlignment = Alignment.End) {
+
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.width(IntrinsicSize.Min)) { // Ensure this column doesn't push others too much
                 Text(
                     currencyFormat.format(product.price),
                     fontWeight = FontWeight.SemiBold,

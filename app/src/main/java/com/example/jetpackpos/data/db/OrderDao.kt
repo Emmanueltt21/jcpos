@@ -51,4 +51,12 @@ interface OrderDao {
         clearOrderItems() // Clear items first due to foreign key constraints if any were RESTRICT
         clearOrders()
     }
+
+    @Transaction
+    @Query("SELECT * FROM orders WHERE id LIKE '%' || :query || '%' OR CAST(timestamp AS TEXT) LIKE '%' || :query || '%' ORDER BY timestamp DESC")
+    fun searchOrders(query: String): Flow<List<OrderWithItems>>
+    // Note: Searching timestamp as text is very basic. Proper date searching is more complex.
+    // Searching ID with LIKE assumes ID might be treated as string for searching.
+    // If query can be safely parsed to Long for ID, a direct equality check would be better:
+    // e.g., add another fun searchOrderById(orderId: Long): Flow<OrderWithItems?>
 }

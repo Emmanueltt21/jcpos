@@ -22,6 +22,7 @@ data class ProductFormState(
     val sku: String = "",
     val quantity: String = "", // Use String for input, convert to Int for saving
     val category: String = "",
+    val description: String = "", // New field
     val imageUri: String? = null,
 
     val nameError: String? = null,
@@ -82,6 +83,10 @@ class AddEditProductViewModel @Inject constructor(
         _formState.value = _formState.value.copy(category = category, categoryError = null, generalError = null)
     }
 
+    fun onDescriptionChange(description: String) {
+        _formState.value = _formState.value.copy(description = description, generalError = null)
+    }
+
     fun onImageUriChange(uri: String?) {
         _formState.value = _formState.value.copy(imageUri = uri)
     }
@@ -97,6 +102,7 @@ class AddEditProductViewModel @Inject constructor(
                     sku = product.sku,
                     quantity = product.quantity.toString(),
                     category = product.category,
+                    description = product.description ?: "",
                     imageUri = product.imageUri,
                     isLoading = false
                 )
@@ -141,6 +147,7 @@ class AddEditProductViewModel @Inject constructor(
                     sku = currentFormState.sku.trim(),
                     quantity = quantityInt,
                     category = currentFormState.category.trim(),
+                    description = currentFormState.description.trim(),
                     imageUri = currentFormState.imageUri
                 )
 

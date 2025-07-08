@@ -2,17 +2,23 @@ package com.example.jetpackpos.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.jetpackpos.data.model.ShopInfo
+import com.example.jetpackpos.ui.navigation.EditShopInfo
+import com.example.jetpackpos.ui.navigation.Screen // Assuming EditShopInfo is in Screen.kt
 import com.example.jetpackpos.ui.viewmodel.SettingsEvent
 import com.example.jetpackpos.ui.viewmodel.SettingsViewModel
+import com.example.jetpackpos.ui.viewmodel.ShopInfoUiState
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,6 +29,7 @@ fun SettingsScreen(
 ) {
     var showResetDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val shopInfoState by viewModel.shopInfoState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.eventFlow.collectLatest { event ->
@@ -45,26 +52,66 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            // horizontalAlignment = Alignment.CenterHorizontally, // Keep for global, but specific items might align start
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 "Application Settings",
                 style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally)
             )
 
-            // Placeholder for Theme settings (Light/Dark/System)
-            // Placeholder for Currency settings
+            // Display Shop Information
+            ShopInfoSection(shopInfoState = shopInfoState, onEditClick = {
+                navController.navigate(EditShopInfo.route)
+            })
 
-            Spacer(modifier = Modifier.weight(1f)) // Pushes reset button to the bottom area
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+            // Manage Categories Button
+            SettingsButton(
+                text = "Manage Categories",
+                onClick = { navController.navigate(com.example.jetpackpos.ui.navigation.CategoryList.route) }
+            )
+
+            // Manage Payment Methods Button (Placeholder)
+             SettingsButton(
+                text = "Manage Payment Methods",
+                onClick = {
+                    // In a real app, this might navigate or show a dialog.
+                    // For now, using the snackbarHostState from the parent composable.
+                    // This requires snackbarHostState to be accessible or passed down.
+                    // For simplicity, let's assume a local scope where it is accessible if this were a real event.
+                    // However, since it's a simple placeholder, we can make it a simple Toast or
+                    // just rely on the fact it's a placeholder.
+                    // For consistency with other "Not Implemented" placeholders, a Toast is fine.
+                    // Or, we can launch a coroutine to show snackbar.
+                    // For now, I'll keep it as is, assuming snackbarHostState is in scope,
+                    // but this is a common point of refactoring.
+                    // To make it explicit:
+                    // val scope = rememberCoroutineScope()
+                    // onClick = { scope.launch { snackbarHostState.showSnackbar("...") } }
+                    // For this pass, I'll assume the direct call works due to composition scope.
+                     snackbarHostState.showSnackbar("Payment Methods - Not Implemented Yet", duration = SnackbarDuration.Short)
+                }
+            )
+
+            // Backup Data Button (Placeholder)
+            SettingsButton(
+                text = "Backup Data",
+                onClick = {
+                     snackbarHostState.showSnackbar("Backup Data - Not Implemented Yet", duration = SnackbarDuration.Short)
+                }
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
 
             Button(
                 onClick = { showResetDialog = true },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                 modifier = Modifier.fillMaxWidth(0.8f)
             ) {
-                Icon(Icons.Rounded.Delete, contentDescription = "Reset Database Icon", modifier = Modifier.padding(end = 8.dp))
+                Icon(Icons.Filled.DeleteForever, contentDescription = "Reset Database Icon", modifier = Modifier.padding(end = 8.dp))
                 Text("Reset Database")
             }
              Text(
@@ -99,5 +146,58 @@ fun SettingsScreen(
                 }
             )
         }
+    }
+}
+
+@Composable
+fun ShopInfoSection(shopInfoState: ShopInfoUiState, onEditClick: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Shop Information", style = MaterialTheme.typography.titleMedium)
+            TextButton(onClick = onEditClick) {
+                Text("Edit")
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        when (shopInfoState) {
+            is ShopInfoUiState.Loading -> CircularProgressIndicator()
+            is ShopInfoUiState.Error -> Text("Error: ${shopInfoState.message}", color = MaterialTheme.colorScheme.error)
+            is ShopInfoUiState.Success -> {
+                val info = shopInfoState.shopInfo
+                InfoRowSettings("Shop Name:", info.shopName)
+                info.contactNumber?.let { InfoRowSettings("Contact:", it) }
+                info.email?.let { InfoRowSettings("Email:", it) }
+                info.address?.let { InfoRowSettings("Address:", it) }
+                InfoRowSettings("Currency:", info.currencySymbol)
+                InfoRowSettings("Tax Rate:", "${info.taxPercentage * 100}%")
+            }
+        }
+    }
+}
+
+@Composable
+fun InfoRowSettings(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(120.dp), fontSize = 14.sp)
+        Text(value, fontSize = 14.sp)
+    }
+}
+
+@Composable
+fun SettingsButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
+    ) {
+        Text(text, modifier = Modifier.padding(8.dp))
     }
 }

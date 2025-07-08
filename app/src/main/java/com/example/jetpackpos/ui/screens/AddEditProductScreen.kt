@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun AddEditProductScreen(
     navController: NavController,
-
     // Removed productId from here as ViewModel handles it via SavedStateHandle
     viewModel: AddEditProductViewModel = hiltViewModel()
 ) {
@@ -154,6 +153,29 @@ fun AddEditProductScreen(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                OutlinedTextField(
+                    value = formState.description,
+                    onValueChange = viewModel::onDescriptionChange,
+                    label = { Text("Description (Optional)") },
+                    modifier = Modifier.fillMaxWidth().height(120.dp), // Allow for multi-line
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    maxLines = 5
+                )
+
+                // Placeholder buttons for Scan and Image Picking
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(onClick = { /* TODO: Implement Scan */ }, enabled = false, modifier = Modifier.weight(1f)) {
+                        Text("Scan Code")
+                    }
+                    Button(onClick = { /* TODO: Implement Image Pick */ }, enabled = false, modifier = Modifier.weight(1f)) {
+                        Text("Pick Image")
+                    }
+                }
+
 
                 // Show loading indicator during save operation (for new or edit)
                 if (formState.isLoading && (formState.currentProductId == null || !formState.isEditing) ) {

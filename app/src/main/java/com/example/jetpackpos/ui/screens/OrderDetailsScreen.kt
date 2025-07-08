@@ -98,6 +98,19 @@ fun OrderDetailsScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        // Conceptual Print Buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                        ) {
+                            Button(onClick = { /* TODO: Implement PDF Print */ }, enabled = false) {
+                                Text("Print PDF")
+                            }
+                            Button(onClick = { /* TODO: Implement Thermal Print */ }, enabled = false) {
+                                Text("Print Thermal")
+                            }
+                        }
                     }
                 }
             }

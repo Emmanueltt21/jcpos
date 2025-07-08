@@ -36,4 +36,8 @@ class OrderRepository @Inject constructor(private val orderDao: OrderDao) {
     suspend fun clearAllOrderData() {
         orderDao.clearAllOrderData()
     }
+
+    fun searchOrders(query: String): Flow<List<OrderWithItems>> {
+        return orderDao.searchOrders(query)
+    }
 }

@@ -85,7 +85,7 @@ fun JetpackPOSApp() {
                     .padding(innerPadding),
                 color = MaterialTheme.colorScheme.background
             ) {
-                AppNavigationGraph(navController = navController)
+                AppNavigationGraph(navController = navController, startDestination = Screen.Home.route)
             }
         }
     }

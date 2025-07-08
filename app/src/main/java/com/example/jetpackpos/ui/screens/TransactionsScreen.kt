@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -29,49 +28,77 @@ import java.util.Locale
 @Composable
 fun TransactionsScreen(
     navController: NavController,
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Person // For customer icon placeholder
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+
     viewModel: TransactionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Transaction History") })
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when (val state = uiState) {
-                is TransactionListUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-                is TransactionListUiState.Error -> {
-                    Text(
-                        text = "Error: ${state.message}",
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp)
-                    )
-                }
-                is TransactionListUiState.Success -> {
-                    if (state.orders.isEmpty()) {
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) { // Changed Box to Column
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = viewModel::onSearchQueryChange,
+                label = { Text("Search by Order ID or Date part") }, // Updated label
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                singleLine = true,
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search Icon") },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Clear Search")
+                        }
+                    }
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search)
+            )
+
+            Box(
+                modifier = Modifier.weight(1f) // Ensure LazyColumn takes remaining space
+            ) {
+                when (val state = uiState) {
+                    is TransactionListUiState.Loading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
+                    is TransactionListUiState.Error -> {
                         Text(
-                            text = "No transactions found.",
+                            text = "Error: ${state.message}",
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .padding(16.dp)
                         )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(state.orders, key = { orderWithItems -> orderWithItems.order.id }) { orderWithItems ->
-                                TransactionListItem(
-                                    orderWithItems = orderWithItems,
+                    }
+                    is TransactionListUiState.Success -> {
+                        if (state.orders.isEmpty()) {
+                            Text(
+                                text = if(searchQuery.isBlank()) "No transactions found." else "No transactions match your search.",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .padding(16.dp)
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(state.orders, key = { orderWithItems -> orderWithItems.order.id }) { orderWithItems ->
+                                    TransactionListItem(
+                                        orderWithItems = orderWithItems,
                                     onClick = {
                                         navController.navigate(Screen.OrderDetails.routeWithArg(orderWithItems.order.id))
                                     }
@@ -103,9 +130,15 @@ fun TransactionListItem(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically
+            // horizontalArrangement = Arrangement.SpaceBetween // Let items flow naturally
         ) {
+            Icon(
+                imageVector = Icons.Filled.Person, // Customer icon placeholder
+                contentDescription = "Customer",
+                modifier = Modifier.size(40.dp).padding(end = 12.dp),
+                tint = MaterialTheme.colorScheme.secondary
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "Order #${orderWithItems.order.id}",

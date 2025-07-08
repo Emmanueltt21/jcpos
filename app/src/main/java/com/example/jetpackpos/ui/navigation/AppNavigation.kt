@@ -18,24 +18,85 @@ import com.example.jetpackpos.ui.screens.TransactionsScreen
 @Composable
 fun AppNavigationGraph(
     navController: NavHostController,
+    startDestination: String, // Added startDestination parameter
+import com.example.jetpackpos.ui.screens.AboutScreen
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import com.example.jetpackpos.ui.screens.* // Import all screens
+
+@Composable
+fun AppNavigationGraph(
+    navController: NavHostController,
+    startDestination: String, // Added startDestination parameter
     modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Inventory.route, // Default start screen
+        startDestination = startDestination, // Use the parameter
         modifier = modifier
     ) {
+        composable(Screen.Home.route) {
+            HomeScreen(navController)
+        }
         composable(Screen.Inventory.route) {
             InventoryScreen(navController)
         }
-        composable(Screen.Sales.route) {
-            SalesScreen(navController)
+        composable(Screen.POS.route) {
+            POSScreen(navController) // Updated to POSScreen
         }
         composable(Screen.Transactions.route) {
             TransactionsScreen(navController)
         }
         composable(Screen.Settings.route) {
             SettingsScreen(navController)
+        }
+
+        // Placeholder screens from Home
+        composable(Screen.Customers.route) {
+            CustomersScreen(navController)
+        }
+        composable(Screen.Reports.route) {
+            ReportsScreen(navController)
+        }
+        composable(Screen.AboutApp.route) {
+            AboutScreen(navController)
+        }
+        // Screen.AllOrders navigates to Screen.Transactions, handled in HomeScreen
+        // Screen.SignOut is an action, not a screen, handled in HomeScreen
+
+        composable(
+            route = AddEditCustomer.ROUTE_WITH_ARG,
+            arguments = listOf(navArgument(AddEditCustomer.ARG_CUSTOMER_ID) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            })
+        ) {
+            AddEditCustomerScreen(navController = navController)
+        }
+
+        composable(EditShopInfo.route) {
+            EditShopInfoScreen(navController = navController)
+        }
+        composable(CategoryList.route) {
+            CategoryListScreen(navController = navController)
+        }
+        composable(
+            route = AddEditCategory.ROUTE_WITH_ARG,
+            arguments = listOf(navArgument(AddEditCategory.ARG_CATEGORY_ID) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            })
+        ) {
+            AddEditCategoryScreen(navController = navController)
+        }
+
+        composable(CartDetails.route) {
+            CartDetailsScreen(navController = navController)
         }
 
         composable(
@@ -45,12 +106,9 @@ fun AppNavigationGraph(
                 nullable = true
                 defaultValue = null
             })
-        ) { backStackEntry ->
-            val productIdString = backStackEntry.arguments?.getString(Screen.AddEditProduct.ARG_PRODUCT_ID)
-            AddEditProductScreen(
-                navController = navController,
-                //productId = productIdString?.toLongOrNull()
-            )
+        ) {
+             // ViewModel now handles this via SavedStateHandle
+            AddEditProductScreen(navController = navController)
         }
 
         composable(

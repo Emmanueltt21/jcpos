@@ -21,31 +21,41 @@ sealed interface TransactionListUiState {
     data class Error(val message: String) : TransactionListUiState
 }
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onStart
+
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TransactionViewModel @Inject constructor(
     private val orderRepository: OrderRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<TransactionListUiState>(TransactionListUiState.Loading)
-    val uiState: StateFlow<TransactionListUiState> = _uiState.asStateFlow()
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    init {
-        loadTransactions()
-    }
-
-    private fun loadTransactions() {
-        viewModelScope.launch {
-            orderRepository.getAllOrdersWithItems()
-                .map<List<OrderWithItems>, TransactionListUiState> { orders -> TransactionListUiState.Success(orders) }
-                .catch { e -> _uiState.value = TransactionListUiState.Error(e.message ?: "Unknown error loading transactions") }
-                .stateIn( // Convert to StateFlow
-                    scope = viewModelScope,
-                    started = SharingStarted.WhileSubscribed(5000L),
-                    initialValue = TransactionListUiState.Loading
-                )
-                .collect { MappedState -> // Collect the mapped state
-                    _uiState.value = MappedState
+    val uiState: StateFlow<TransactionListUiState> =
+        searchQuery
+            .debounce(300)
+            .flatMapLatest { query ->
+                if (query.isBlank()) {
+                    orderRepository.getAllOrdersWithItems()
+                } else {
+                    orderRepository.searchOrders(query)
                 }
-        }
+            }
+            .map<List<OrderWithItems>, TransactionListUiState> { orders -> TransactionListUiState.Success(orders) }
+            .onStart { emit(TransactionListUiState.Loading) }
+            .catch { e -> emit(TransactionListUiState.Error(e.message ?: "Unknown error loading transactions")) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = TransactionListUiState.Loading
+            )
+
+    fun onSearchQueryChange(newQuery: String) {
+        _searchQuery.value = newQuery
     }
 }
