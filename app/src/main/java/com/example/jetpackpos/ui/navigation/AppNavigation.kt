@@ -1,5 +1,11 @@
 package com.example.jetpackpos.ui.navigation
 
+import com.example.jetpackpos.ui.screens.AboutScreen
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import com.example.jetpackpos.ui.screens.* // Import all screens
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -11,21 +17,9 @@ import com.example.jetpackpos.ui.screens.AddEditProductScreen
 import com.example.jetpackpos.ui.screens.InventoryScreen
 import com.example.jetpackpos.ui.screens.OrderDetailsScreen
 import com.example.jetpackpos.ui.screens.ProductDetailsScreen
-import com.example.jetpackpos.ui.screens.SalesScreen
 import com.example.jetpackpos.ui.screens.SettingsScreen
 import com.example.jetpackpos.ui.screens.TransactionsScreen
 
-@Composable
-fun AppNavigationGraph(
-    navController: NavHostController,
-    startDestination: String, // Added startDestination parameter
-import com.example.jetpackpos.ui.screens.AboutScreen
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import com.example.jetpackpos.ui.screens.* // Import all screens
 
 @Composable
 fun AppNavigationGraph(

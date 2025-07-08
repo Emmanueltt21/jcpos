@@ -1,5 +1,17 @@
 package com.example.jetpackpos.ui.screens
 
+
+import coil.compose.AsyncImage
+import androidx.compose.material.icons.filled.Image // Placeholder icon
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape // Added import
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.material.icons.filled.UploadFile // For Export
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,12 +50,6 @@ fun InventoryScreen(
     val uiState by viewModel.productsUiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     var showDeleteDialog by remember { mutableStateOf<Product?>(null) }
-
-import androidx.compose.material.icons.filled.UploadFile // For Export
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
-
-
     val context = LocalContext.current // For Toast message
     Scaffold(
         topBar = {
@@ -62,10 +68,7 @@ import androidx.compose.ui.platform.LocalContext
             FloatingActionButton(onClick = { navController.navigate(Screen.AddEditProduct.routeWithArgs()) }) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Product")
             }
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.ImeAction
+
 
         }
     ) { paddingValues ->
@@ -165,17 +168,13 @@ import androidx.compose.ui.text.input.ImeAction
             }
         }
     }
-}
+
 
 @Composable
 fun ProductListItem(
     product: Product,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-import androidx.compose.material.icons.filled.Image // Placeholder icon
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape // Added import
-
     onClick: () -> Unit
 ) {
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault()) // Adjust locale as needed
@@ -198,7 +197,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape // Added import
                 modifier = Modifier
                     .size(64.dp) // Fixed size for the image placeholder
                     .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp)),
-import coil.compose.AsyncImage
+
 
                 contentAlignment = Alignment.Center
             ) {
@@ -207,13 +206,13 @@ import coil.compose.AsyncImage
                     contentDescription = product.name,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                    error = { // Fallback to placeholder icon
+                   /* error = { // Fallback to placeholder icon
                         Icon(
                             imageVector = Icons.Filled.Image,
                             contentDescription = "Product Image Placeholder",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    }
+                    }*/
                 )
             }
 

@@ -1,5 +1,12 @@
 package com.example.jetpackpos.ui.screens
 
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Person // For customer icon placeholder
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -28,14 +36,6 @@ import java.util.Locale
 @Composable
 fun TransactionsScreen(
     navController: NavController,
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Person // For customer icon placeholder
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
-
     viewModel: TransactionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -73,6 +73,7 @@ import androidx.compose.ui.text.style.TextAlign
                     is TransactionListUiState.Loading -> {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                     }
+
                     is TransactionListUiState.Error -> {
                         Text(
                             text = "Error: ${state.message}",
@@ -81,10 +82,11 @@ import androidx.compose.ui.text.style.TextAlign
                                 .padding(16.dp)
                         )
                     }
+
                     is TransactionListUiState.Success -> {
                         if (state.orders.isEmpty()) {
                             Text(
-                                text = if(searchQuery.isBlank()) "No transactions found." else "No transactions match your search.",
+                                text = if (searchQuery.isBlank()) "No transactions found." else "No transactions match your search.",
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
                                     .align(Alignment.Center)
@@ -96,13 +98,20 @@ import androidx.compose.ui.text.style.TextAlign
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                items(state.orders, key = { orderWithItems -> orderWithItems.order.id }) { orderWithItems ->
+                                items(
+                                    state.orders,
+                                    key = { orderWithItems -> orderWithItems.order.id }) { orderWithItems ->
                                     TransactionListItem(
                                         orderWithItems = orderWithItems,
-                                    onClick = {
-                                        navController.navigate(Screen.OrderDetails.routeWithArg(orderWithItems.order.id))
-                                    }
-                                )
+                                        onClick = {
+                                            navController.navigate(
+                                                Screen.OrderDetails.routeWithArg(
+                                                    orderWithItems.order.id
+                                                )
+                                            )
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

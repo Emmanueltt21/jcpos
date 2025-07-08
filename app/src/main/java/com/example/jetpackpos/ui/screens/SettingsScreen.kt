@@ -16,7 +16,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.jetpackpos.MainActivity # For AppThemeState
+import com.example.jetpackpos.AppThemeState
 import com.example.jetpackpos.data.model.ShopInfo
 import com.example.jetpackpos.ui.navigation.EditShopInfo
 import com.example.jetpackpos.ui.navigation.Screen
@@ -102,7 +102,7 @@ fun SettingsScreen(
                     // val scope = rememberCoroutineScope()
                     // onClick = { scope.launch { snackbarHostState.showSnackbar("...") } }
                     // For this pass, I'll assume the direct call works due to composition scope.
-                     snackbarHostState.showSnackbar("Payment Methods - Not Implemented Yet", duration = SnackbarDuration.Short)
+                    // snackbarHostState.showSnackbar("Payment Methods - Not Implemented Yet", duration = SnackbarDuration.Short)
                 }
             )
 
@@ -110,7 +110,7 @@ fun SettingsScreen(
             SettingsButton(
                 text = "Backup Data",
                 onClick = {
-                     snackbarHostState.showSnackbar("Backup Data - Not Implemented Yet", duration = SnackbarDuration.Short)
+                     //snackbarHostState.showSnackbar("Backup Data - Not Implemented Yet", duration = SnackbarDuration.Short)
                 }
             )
 
