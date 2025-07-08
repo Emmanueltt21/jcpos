@@ -1,16 +1,15 @@
 package com.example.jetpackpos.ui.screens
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddShoppingCart
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.RemoveShoppingCart
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,20 +17,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-// import com.example.jetpackpos.data.model.CartItem // No longer needed here directly
-import com.example.jetpackpos.ui.screens.common.CartSummaryView // Import common component
 import com.example.jetpackpos.data.model.Product
+import com.example.jetpackpos.ui.navigation.CartDetails
 import com.example.jetpackpos.ui.viewmodel.CartEvent
 import com.example.jetpackpos.ui.viewmodel.CartViewModel
 import com.example.jetpackpos.ui.viewmodel.ProductListUiState
 import com.example.jetpackpos.ui.viewmodel.ProductListViewModel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -44,13 +42,8 @@ fun POSScreen( // Renamed from SalesScreen
 ) {
     val productListState by productListViewModel.productsUiState.collectAsState()
     val cartState by cartViewModel.cartUiState.collectAsState()
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Badge // For older Material, might be BadgeBox in M3
-import androidx.compose.material3.BadgedBox // Correct for M3
-
     val snackbarHostState = remember { SnackbarHostState() }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale.getDefault()) } // Define at screen level
+    val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale.getDefault()) }
 
     LaunchedEffect(key1 = Unit) {
         cartViewModel.cartEvents.collectLatest { event ->
@@ -82,7 +75,7 @@ import androidx.compose.material3.BadgedBox // Correct for M3
                             }
                         }
                     ) {
-                        IconButton(onClick = { navController.navigate(com.example.jetpackpos.ui.navigation.CartDetails.route) }) {
+                        IconButton(onClick = { navController.navigate(com.example.jetpackpos.ui.navigation.Checkout.route) }) { // Updated to Checkout.route
                             Icon(
                                 imageVector = Icons.Filled.ShoppingCart,
                                 contentDescription = "Open Cart"
@@ -92,14 +85,11 @@ import androidx.compose.material3.BadgedBox // Correct for M3
                 }
             )
         }
-import androidx.compose.material.icons.filled.QrCodeScanner // For Scan button
-
     ) { paddingValues ->
-        Column( // Changed from Row to Column to stack elements vertically
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                // .padding(8.dp) // Main padding will be on children
         ) {
             // Row for Scan button and Total Amount
             Row(
@@ -109,7 +99,7 @@ import androidx.compose.material.icons.filled.QrCodeScanner // For Scan button
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val scope = rememberCoroutineScope() // For launching snackbar
+                val scope = rememberCoroutineScope()
                 Button(
                     onClick = {
                         scope.launch {
@@ -133,7 +123,7 @@ import androidx.compose.material.icons.filled.QrCodeScanner // For Scan button
 
             // Search Bar
             OutlinedTextField(
-                value = productListViewModel.searchQuery.collectAsState().value, // Assuming ProductListViewModel is accessible and has searchQuery
+                value = productListViewModel.searchQuery.collectAsState().value,
                 onValueChange = { productListViewModel.onSearchQueryChange(it) },
                 label = { Text("Search Products") },
                 modifier = Modifier
@@ -151,39 +141,32 @@ import androidx.compose.material.icons.filled.QrCodeScanner // For Scan button
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search)
             )
 
-            // Main content Row for Product List and Cart Summary
-            Row(
+            // Product List Area
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f) // Takes remaining space
+                    .weight(1f) // Takes remaining space below search bar
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
-                 // Product List Area
-                Column(modifier = Modifier.weight(0.6f)) {
-                    // Text("Available Products", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp)) // Title moved or implicit
-                    when (val state = productListState) {
-                    is ProductListUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                    is ProductListUiState.Error -> Text("Error loading products: ${state.message}", color = MaterialTheme.colorScheme.error)
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items // Correct import for LazyVerticalGrid items
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.Image // For placeholder
-
+                when (val state = productListState) {
+                    is ProductListUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    is ProductListUiState.Error -> Text(
+                        "Error loading products: ${state.message}",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                     is ProductListUiState.Success -> {
                         if (state.products.isEmpty()) {
                             Text(
                                 if (productListViewModel.searchQuery.collectAsState().value.isNotBlank()) "No products match search." else "No products in inventory.",
-                                modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp)
+                                modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                                textAlign = TextAlign.Center
                             )
                         } else {
                             LazyVerticalGrid(
-                                columns = GridCells.Adaptive(minSize = 150.dp), // Or GridCells.Fixed(2)
+                                columns = GridCells.Fixed(3), // Changed to Fixed(3)
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                contentPadding = PaddingValues(top = 8.dp) // Add padding above the grid
+                                contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp)
                             ) {
                                 items(state.products, key = { it.id }) { product ->
                                     val cartItem = cartState.items.find { item -> item.productId == product.id }
@@ -198,30 +181,7 @@ import androidx.compose.material.icons.filled.Image // For placeholder
                     }
                 }
             }
-
-            Spacer(Modifier.width(8.dp))
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
-            Spacer(Modifier.width(8.dp))
-
-            // Cart Area
-            Column(modifier = Modifier.weight(0.4f)) {
-                CartSummaryView(
-                    cartItems = cartState.items,
-                    subtotal = cartState.subtotal,
-                    taxAmount = cartState.taxAmount,
-                    total = cartState.total,
-                    onQuantityChange = { productId, newQuantity ->
-                        cartViewModel.updateQuantityInCart(productId, newQuantity)
-                        keyboardController?.hide()
-                    },
-                    onRemoveItem = { cartViewModel.removeProductFromCart(it) },
-                    onClearCart = { cartViewModel.clearCart() },
-                    onCheckout = {
-                        cartViewModel.checkout() // Call the actual checkout method
-                    },
-                    isCheckoutButtonVisible = false // Hide checkout button in POS sidebar summary
-                )
-            }
+            // Cart Summary Sidebar has been removed from this screen.
         }
     }
 }
@@ -259,7 +219,7 @@ fun ProductGridItem(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Image, // From InventoryScreen placeholder
+                        imageVector = Icons.Filled.Image,
                         contentDescription = product.name,
                         modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant

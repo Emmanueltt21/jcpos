@@ -14,10 +14,17 @@ data class Order(
     val timestamp: Long = System.currentTimeMillis(), // Default to current time
 
     @ColumnInfo(name = "total_amount")
-    val totalAmount: Double
+    val totalAmount: Double,
+
+    @ColumnInfo(name = "customer_id", index = true) // Index for faster lookups if needed
+    val customerId: Long? = null, // Nullable if order can be placed without a customer
+
+    @ColumnInfo(name = "payment_method")
+    val paymentMethod: String = "Cash" // Default payment method
 ) {
     init {
         require(totalAmount >= 0) { "Order total amount cannot be negative." }
+        require(paymentMethod.isNotBlank()) { "Payment method cannot be blank."}
     }
 
     // Convenience getter for Date object from timestamp

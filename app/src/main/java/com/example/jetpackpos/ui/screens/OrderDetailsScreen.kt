@@ -17,7 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.jetpackpos.data.model.OrderItem
+// import com.example.jetpackpos.data.model.OrderItem // No longer defined here
+import com.example.jetpackpos.ui.screens.common.OrderItemView // Import common component
 import com.example.jetpackpos.ui.viewmodel.OrderDetailsUiState
 import com.example.jetpackpos.ui.viewmodel.OrderDetailsViewModel
 import java.text.NumberFormat
@@ -118,26 +119,4 @@ fun OrderDetailsScreen(
     }
 }
 
-@Composable
-fun OrderItemView(item: OrderItem, currencyFormat: NumberFormat) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(item.productNameAtPurchase, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-            Text("SKU: ${item.productSkuAtPurchase}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(
-                "${currencyFormat.format(item.priceAtPurchase)} x ${item.quantitySold}",
-                fontSize = 14.sp
-            )
-        }
-        Text(
-            currencyFormat.format(item.priceAtPurchase * item.quantitySold),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
+// OrderItemView is now in ui.screens.common.OrderComponents.kt

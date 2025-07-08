@@ -25,6 +25,10 @@ data class ProductFormState(
     val description: String = "", // New field
     val imageUri: String? = null,
 
+    // Category suggestions
+    val categories: List<com.example.jetpackpos.data.model.Category> = emptyList(),
+    val isLoadingCategories: Boolean = false,
+
     val nameError: String? = null,
     val priceError: String? = null,
     val skuError: String? = null,
@@ -32,7 +36,7 @@ data class ProductFormState(
     val categoryError: String? = null,
     val generalError: String? = null,
 
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = false, // For loading product details or saving
     val isEditing: Boolean = false,
     val currentProductId: Long? = null
 )
@@ -42,9 +46,12 @@ sealed class AddEditProductEvent {
     data class Error(val message: String) : AddEditProductEvent()
 }
 
+import com.example.jetpackpos.data.repository.CategoryRepository
+
 @HiltViewModel
 class AddEditProductViewModel @Inject constructor(
     private val productRepository: ProductRepository,
+    private val categoryRepository: CategoryRepository, // Injected
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -60,6 +67,21 @@ class AddEditProductViewModel @Inject constructor(
         if (currentProductId != null) {
             _formState.value = _formState.value.copy(isLoading = true, isEditing = true, currentProductId = currentProductId)
             loadProduct(currentProductId)
+        }
+        loadCategories() // Load categories on init
+    }
+
+    private fun loadCategories() {
+        viewModelScope.launch {
+            _formState.update { it.copy(isLoadingCategories = true) }
+            categoryRepository.getAllCategories()
+                .catch { e ->
+                    // Handle error, maybe emit an event or update a general error in formState
+                    _formState.update { it.copy(isLoadingCategories = false, generalError = "Failed to load categories: ${e.message}") }
+                }
+                .collect { categories ->
+                    _formState.update { it.copy(categories = categories, isLoadingCategories = false) }
+                }
         }
     }
 

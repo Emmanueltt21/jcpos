@@ -103,5 +103,11 @@ object AddEditCategory : Screen("add_edit_category", "Add/Edit Category") {
 }
 object PaymentMethodList : Screen("payment_method_list", "Manage Payment Methods", Icons.Filled.Payment) // Placeholder
 
-// Cart Details Screen (navigated from POS toolbar)
-object CartDetails : Screen("cart_details", "Cart Details")
+// Checkout Screen (navigated from POS toolbar cart icon)
+object Checkout : Screen("checkout", "Checkout") // Renamed from CartDetails
+
+// Order Status / Receipt Screen
+object OrderStatusScreen : Screen("order_status/{orderId}", "Order Status") {
+    const val ARG_ORDER_ID = "orderId"
+    fun routeWithArg(orderId: Long): String = "order_status/$orderId"
+}

@@ -135,16 +135,41 @@ fun AddEditProductScreen(
                     )
                 }
 
-                OutlinedTextField(
-                    value = formState.category,
-                    onValueChange = viewModel::onCategoryChange,
-                    label = { Text("Category*") },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = formState.categoryError != null,
-                    singleLine = true,
-                    supportingText = { formState.categoryError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
-                )
+                var categoryDropdownExpanded by remember { mutableStateOf(false) }
+                ExposedDropdownMenuBox(
+                    expanded = categoryDropdownExpanded,
+                    onExpandedChange = { categoryDropdownExpanded = !categoryDropdownExpanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = formState.category,
+                        onValueChange = viewModel::onCategoryChange, // Allows typing new category
+                        label = { Text("Category*") },
+                        modifier = Modifier.fillMaxWidth().menuAnchor(), // Important for positioning the dropdown
+                        isError = formState.categoryError != null,
+                        supportingText = { formState.categoryError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded) },
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                        singleLine = true
+                    )
+                    ExposedDropdownMenu(
+                        expanded = categoryDropdownExpanded && formState.categories.isNotEmpty() && !formState.isLoadingCategories,
+                        onDismissRequest = { categoryDropdownExpanded = false }
+                    ) {
+                        formState.categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category.name) },
+                                onClick = {
+                                    viewModel.onCategoryChange(category.name)
+                                    categoryDropdownExpanded = false
+                                }
+                            )
+                        }
+                        if (formState.isLoadingCategories) {
+                            DropdownMenuItem(text = { Text("Loading categories...") }, onClick = {}, enabled = false)
+                        }
+                    }
+                }
 
                 OutlinedTextField(
                     value = formState.imageUri ?: "",

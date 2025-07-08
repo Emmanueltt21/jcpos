@@ -20,7 +20,7 @@ import com.example.jetpackpos.data.model.ShopInfo
         Category::class,
         ShopInfo::class
     ],
-    version = 2, // Incremented version
+    version = 3, // Incremented version again
     exportSchema = false // For simplicity, set to false. For production, consider exporting and providing migrations.
 )
 abstract class AppDatabase : RoomDatabase() {

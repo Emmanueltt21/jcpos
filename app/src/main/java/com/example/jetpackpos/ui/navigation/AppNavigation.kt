@@ -95,8 +95,15 @@ fun AppNavigationGraph(
             AddEditCategoryScreen(navController = navController)
         }
 
-        composable(CartDetails.route) {
-            CartDetailsScreen(navController = navController)
+        composable(Checkout.route) { // Renamed from CartDetails.route
+            CheckoutScreen(navController = navController) // Renamed from CartDetailsScreen
+        }
+
+        composable(
+            route = OrderStatusScreen.route, // Uses "order_status/{orderId}"
+            arguments = listOf(navArgument(OrderStatusScreen.ARG_ORDER_ID) { type = NavType.LongType })
+        ) {
+            OrderStatusScreen(navController = navController)
         }
 
         composable(
