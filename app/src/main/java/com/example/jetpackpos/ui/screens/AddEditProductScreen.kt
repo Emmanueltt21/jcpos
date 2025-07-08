@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun AddEditProductScreen(
     navController: NavController,
+
     // Removed productId from here as ViewModel handles it via SavedStateHandle
     viewModel: AddEditProductViewModel = hiltViewModel()
 ) {

@@ -49,7 +49,7 @@ fun AppNavigationGraph(
             val productIdString = backStackEntry.arguments?.getString(Screen.AddEditProduct.ARG_PRODUCT_ID)
             AddEditProductScreen(
                 navController = navController,
-                productId = productIdString?.toLongOrNull()
+                //productId = productIdString?.toLongOrNull()
             )
         }
 
