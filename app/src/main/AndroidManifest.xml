@@ -5,6 +5,17 @@
     <!-- Internet permission (optional for purely offline app, but good practice) -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Permissions for Camera and Gallery -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- For Android 12 (API 32) and below -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <!-- For Android 13 (API 33) and above -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- If targeting video or audio as well, add READ_MEDIA_VIDEO / READ_MEDIA_AUDIO -->
+
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+
     <application
         android:name=".PosApplication"
         android:allowBackup="true"
@@ -16,6 +27,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.JetpackPOS"
         tools:targetApi="31">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

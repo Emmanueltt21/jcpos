@@ -79,6 +79,8 @@ fun CartSummaryView(
 
         Divider(modifier = Modifier.padding(vertical = 4.dp))
 
+        val totalItemCount = cartItems.sumOf { it.quantityInCart }
+        CartTotalRow("Total Items:", totalItemCount.toString())
         CartTotalRow("Subtotal:", currencyFormat.format(subtotal))
         CartTotalRow("Tax:", currencyFormat.format(taxAmount))
         CartTotalRow("Total:", currencyFormat.format(total), isTotal = true)

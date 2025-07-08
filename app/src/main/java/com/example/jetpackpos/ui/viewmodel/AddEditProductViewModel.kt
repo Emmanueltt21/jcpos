@@ -15,10 +15,6 @@ import kotlinx.coroutines.flow.firstOrNull
 
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.example.jetpackpos.data.repository.CategoryRepository
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.update
-
 
 data class ProductFormState(
     val name: String = "",
@@ -49,6 +45,8 @@ sealed class AddEditProductEvent {
     object ProductSaved : AddEditProductEvent()
     data class Error(val message: String) : AddEditProductEvent()
 }
+
+import com.example.jetpackpos.data.repository.CategoryRepository
 
 @HiltViewModel
 class AddEditProductViewModel @Inject constructor(

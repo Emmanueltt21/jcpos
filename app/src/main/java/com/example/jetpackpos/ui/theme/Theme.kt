@@ -37,19 +37,26 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+import androidx.compose.runtime.remember
+
 @Composable
 fun JetpackPOSTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeSetting: ThemeSetting = ThemeSetting.SYSTEM, // New parameter
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val darkTheme = when (themeSetting) {
+        ThemeSetting.LIGHT -> false
+        ThemeSetting.DARK -> true
+        ThemeSetting.SYSTEM -> isSystemInDarkTheme()
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

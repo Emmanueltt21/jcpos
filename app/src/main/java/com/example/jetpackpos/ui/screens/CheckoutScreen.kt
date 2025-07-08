@@ -18,7 +18,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.jetpackpos.data.model.Customer
 import com.example.jetpackpos.ui.navigation.OrderStatusScreen // For navigation after checkout
-import com.example.jetpackpos.ui.navigation.Screen
 import com.example.jetpackpos.ui.screens.common.CartSummaryView
 import com.example.jetpackpos.ui.viewmodel.CartEvent
 import com.example.jetpackpos.ui.viewmodel.CartViewModel

@@ -12,14 +12,46 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import android.Manifest
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.example.jetpackpos.BuildConfig // To get applicationId for FileProvider
 import com.example.jetpackpos.ui.viewmodel.AddEditProductEvent
 import com.example.jetpackpos.ui.viewmodel.AddEditProductViewModel
 import kotlinx.coroutines.flow.collectLatest
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Objects
+
+// Helper function to create image URI for camera
+fun createImageUri(context: android.content.Context): Uri {
+    val imageFolder = File(context.cacheDir, "images")
+    imageFolder.mkdirs()
+    val file = File(imageFolder, "JPEG_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}_.jpg")
+    return FileProvider.getUriForFile(
+        Objects.requireNonNull(context),
+        BuildConfig.APPLICATION_ID + ".provider", file
+    )
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,8 +61,51 @@ fun AddEditProductScreen(
     viewModel: AddEditProductViewModel = hiltViewModel()
 ) {
     val formState by viewModel.formState.collectAsState()
-    val context = LocalContext.current // For Toasts or other context needs
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var tempImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.onImageUriChange(it.toString())
+        }
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success) {
+            tempImageUri?.let { // Use the URI that was provided to the camera
+                viewModel.onImageUriChange(it.toString())
+            }
+        }
+    }
+
+    // Permission launchers
+    val requestCameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            tempImageUri = createImageUri(context) // Create URI before launching camera
+            cameraLauncher.launch(tempImageUri)
+        } else {
+            // Handle permission denial - e.g., show a snackbar
+            // For simplicity, this is not handled with a snackbar here, but should be in a real app
+        }
+    }
+    // READ_EXTERNAL_STORAGE or READ_MEDIA_IMAGES permission for gallery
+     val requestGalleryPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            galleryLauncher.launch("image/*")
+        } else {
+            // Handle permission denial
+        }
+    }
 
 
     LaunchedEffect(key1 = true) {
@@ -183,22 +258,77 @@ fun AddEditProductScreen(
                     value = formState.description,
                     onValueChange = viewModel::onDescriptionChange,
                     label = { Text("Description (Optional)") },
-                    modifier = Modifier.fillMaxWidth().height(120.dp), // Allow for multi-line
+                    modifier = Modifier.fillMaxWidth().height(120.dp),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     maxLines = 5
                 )
 
-                // Placeholder buttons for Scan and Image Picking
+                // Image Preview and Picker Buttons
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Product Image (Optional)", style = MaterialTheme.typography.titleSmall)
+                Spacer(modifier = Modifier.height(4.dp))
+
+                AsyncImage(
+                    model = formState.imageUri,
+                    contentDescription = "Product Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                        .clickable {
+                            // Optionally allow clicking the image to change it
+                            // For now, use buttons below
+                        },
+                    contentScale = ContentScale.Crop,
+                    error = { // Display a placeholder if imageUri is null or loading fails
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Filled.Image, "No image selected", modifier = Modifier.size(48.dp))
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Button(onClick = { /* TODO: Implement Scan */ }, enabled = false, modifier = Modifier.weight(1f)) {
-                        Text("Scan Code")
+                    Button(
+                        onClick = { requestGalleryPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES) /* Or READ_EXTERNAL_STORAGE for older APIs */ },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Filled.PhotoLibrary, contentDescription = "Gallery", modifier = Modifier.padding(end = 4.dp))
+                        Text("Gallery")
                     }
-                    Button(onClick = { /* TODO: Implement Image Pick */ }, enabled = false, modifier = Modifier.weight(1f)) {
-                        Text("Pick Image")
+                    Button(
+                        onClick = { requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Filled.CameraAlt, contentDescription = "Camera", modifier = Modifier.padding(end = 4.dp))
+                        Text("Camera")
                     }
+                }
+                 Button(
+                    onClick = { viewModel.onImageUriChange(null) }, // Clear image
+                    enabled = formState.imageUri != null,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                ) {
+                    Text("Remove Image")
+                }
+
+
+                // Placeholder for Scan button (remains conceptual for now)
+import android.widget.Toast // For conceptual scan button
+
+                 Button(
+                    onClick = {
+                        Toast.makeText(context, "Scan Product Code - Not Implemented", Toast.LENGTH_SHORT).show()
+                     },
+                    enabled = false,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                ) {
+                    Text("Scan Product Code (Future)")
                 }
 
 

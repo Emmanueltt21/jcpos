@@ -23,22 +23,35 @@ import com.example.jetpackpos.ui.navigation.AppNavigationGraph
 import com.example.jetpackpos.ui.navigation.Screen
 import com.example.jetpackpos.ui.navigation.bottomNavScreens
 import com.example.jetpackpos.ui.theme.JetpackPOSTheme
+import com.example.jetpackpos.ui.theme.ThemeSetting // Import ThemeSetting
 import dagger.hilt.android.AndroidEntryPoint
+
+// Simple App-level state holder for theme.
+// In a larger app, this might come from a ViewModel + DataStore.
+object AppThemeState {
+    var currentTheme = mutableStateOf(ThemeSetting.SYSTEM)
+}
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            JetpackPOSApp()
+            val currentThemeSetting by AppThemeState.currentTheme
+            JetpackPOSApp(themeSetting = currentThemeSetting) { newTheme ->
+                AppThemeState.currentTheme.value = newTheme
+            }
         }
     }
 }
 
 @Composable
-fun JetpackPOSApp() {
-    JetpackPOSTheme {
+fun JetpackPOSApp(themeSetting: ThemeSetting, onThemeChange: (ThemeSetting) -> Unit) { // Added params
+    JetpackPOSTheme(themeSetting = themeSetting) { // Pass themeSetting
         val navController = rememberNavController()
+        // Pass onThemeChange down to SettingsScreen via AppNavigationGraph's Settings composable
+        // This requires AppNavigationGraph and SettingsScreen to accept this callback.
+        // For simplicity now, SettingsScreen will directly update AppThemeState.currentTheme.
         Scaffold(
             bottomBar = {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()

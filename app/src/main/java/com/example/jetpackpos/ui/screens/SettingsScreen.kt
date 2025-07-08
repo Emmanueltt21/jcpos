@@ -10,12 +10,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.jetpackpos.MainActivity # For AppThemeState
 import com.example.jetpackpos.data.model.ShopInfo
 import com.example.jetpackpos.ui.navigation.EditShopInfo
-import com.example.jetpackpos.ui.navigation.Screen // Assuming EditShopInfo is in Screen.kt
+import com.example.jetpackpos.ui.navigation.Screen
+import com.example.jetpackpos.ui.theme.ThemeSetting
 import com.example.jetpackpos.ui.viewmodel.SettingsEvent
 import com.example.jetpackpos.ui.viewmodel.SettingsViewModel
 import com.example.jetpackpos.ui.viewmodel.ShopInfoUiState
@@ -68,6 +73,11 @@ fun SettingsScreen(
 
             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
+            // Theme Switcher Section
+            ThemeSwitcherSection()
+
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
             // Manage Categories Button
             SettingsButton(
                 text = "Manage Categories",
@@ -92,7 +102,7 @@ fun SettingsScreen(
                     // val scope = rememberCoroutineScope()
                     // onClick = { scope.launch { snackbarHostState.showSnackbar("...") } }
                     // For this pass, I'll assume the direct call works due to composition scope.
-                    // snackbarHostState.showSnackbar("Payment Methods - Not Implemented Yet", duration = SnackbarDuration.Short)
+                     snackbarHostState.showSnackbar("Payment Methods - Not Implemented Yet", duration = SnackbarDuration.Short)
                 }
             )
 
@@ -100,7 +110,7 @@ fun SettingsScreen(
             SettingsButton(
                 text = "Backup Data",
                 onClick = {
-                     //snackbarHostState.showSnackbar("Backup Data - Not Implemented Yet", duration = SnackbarDuration.Short)
+                     snackbarHostState.showSnackbar("Backup Data - Not Implemented Yet", duration = SnackbarDuration.Short)
                 }
             )
 
@@ -199,5 +209,41 @@ fun SettingsButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
     ) {
         Text(text, modifier = Modifier.padding(8.dp))
+    }
+}
+
+@Composable
+fun ThemeSwitcherSection() {
+    val currentTheme = AppThemeState.currentTheme.value // Observe the state
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text("Theme", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(Modifier.selectableGroup()) {
+            ThemeSetting.entries.forEach { themeEntry ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .selectable(
+                            selected = (themeEntry == currentTheme),
+                            onClick = { AppThemeState.currentTheme.value = themeEntry },
+                            role = Role.RadioButton
+                        )
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = (themeEntry == currentTheme),
+                        onClick = null // null recommended for accessibility with Row's onClick
+                    )
+                    Text(
+                        text = themeEntry.name.lowercase().replaceFirstChar { it.titlecase() },
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+            }
+        }
     }
 }
