@@ -28,6 +28,17 @@ import com.example.jetpackpos.ui.viewmodel.ProductListUiState
 import com.example.jetpackpos.ui.viewmodel.ProductListViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.compose.material.icons.filled.UploadFile // For Export
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.material.icons.filled.Image // Placeholder icon
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape // Added import
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,12 +49,6 @@ fun InventoryScreen(
     val uiState by viewModel.productsUiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     var showDeleteDialog by remember { mutableStateOf<Product?>(null) }
-
-import androidx.compose.material.icons.filled.UploadFile // For Export
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
-
-
     val context = LocalContext.current // For Toast message
     Scaffold(
         topBar = {
@@ -62,10 +67,6 @@ import androidx.compose.ui.platform.LocalContext
             FloatingActionButton(onClick = { navController.navigate(Screen.AddEditProduct.routeWithArgs()) }) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Product")
             }
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.ImeAction
 
         }
     ) { paddingValues ->
@@ -165,16 +166,13 @@ import androidx.compose.ui.text.input.ImeAction
             }
         }
     }
-}
+
 
 @Composable
 fun ProductListItem(
     product: Product,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-import androidx.compose.material.icons.filled.Image // Placeholder icon
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape // Added import
 
     onClick: () -> Unit
 ) {

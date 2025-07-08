@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.jetpackpos.data.model.Product
-import com.example.jetpackpos.ui.navigation.CartDetails
 import com.example.jetpackpos.ui.viewmodel.CartEvent
 import com.example.jetpackpos.ui.viewmodel.CartViewModel
 import com.example.jetpackpos.ui.viewmodel.ProductListUiState
