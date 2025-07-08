@@ -1,5 +1,6 @@
 package com.example.jetpackpos.ui.navigation
 
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.Icons // Consolidated import
 import androidx.compose.material.icons.automirrored.filled.ListAlt // For All Orders on Home
 import androidx.compose.material.icons.filled.Assessment
