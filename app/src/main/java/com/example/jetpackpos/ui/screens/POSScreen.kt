@@ -1,5 +1,12 @@
 package com.example.jetpackpos.ui.screens
 
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items // Correct import for LazyVerticalGrid items
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Image // For placeholder
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.RemoveShoppingCart
 import androidx.compose.material3.*
@@ -34,6 +42,13 @@ import com.example.jetpackpos.ui.viewmodel.ProductListViewModel
 import kotlinx.coroutines.flow.collectLatest
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge // For older Material, might be BadgeBox in M3
+import androidx.compose.material3.BadgedBox // Correct for M3
+import androidx.compose.material.icons.filled.QrCodeScanner // For Scan button
+import androidx.compose.material.icons.filled.Search
+import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,10 +59,6 @@ fun POSScreen( // Renamed from SalesScreen
 ) {
     val productListState by productListViewModel.productsUiState.collectAsState()
     val cartState by cartViewModel.cartUiState.collectAsState()
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Badge // For older Material, might be BadgeBox in M3
-import androidx.compose.material3.BadgedBox // Correct for M3
-
     val snackbarHostState = remember { SnackbarHostState() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale.getDefault()) } // Define at screen level
@@ -92,7 +103,6 @@ import androidx.compose.material3.BadgedBox // Correct for M3
                 }
             )
         }
-import androidx.compose.material.icons.filled.QrCodeScanner // For Scan button
 
     ) { paddingValues ->
         Column( // Changed from Row to Column to stack elements vertically
@@ -164,13 +174,6 @@ import androidx.compose.material.icons.filled.QrCodeScanner // For Scan button
                     when (val state = productListState) {
                     is ProductListUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     is ProductListUiState.Error -> Text("Error loading products: ${state.message}", color = MaterialTheme.colorScheme.error)
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items // Correct import for LazyVerticalGrid items
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.Image // For placeholder
 
                     is ProductListUiState.Success -> {
                         if (state.products.isEmpty()) {
@@ -224,6 +227,7 @@ import androidx.compose.material.icons.filled.Image // For placeholder
             }
         }
     }
+}
 }
 
 @Composable
