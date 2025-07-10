@@ -8,22 +8,20 @@ import com.example.jetpackpos.data.model.Product
 import com.example.jetpackpos.data.repository.CustomerRepository
 import com.example.jetpackpos.data.repository.OrderRepository
 import com.example.jetpackpos.data.repository.ProductRepository
+import com.example.jetpackpos.data.repository.ShopInfoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-val predefinedPaymentMethods = listOf("Cash", "Card", "PayPal", "Other") // Expanded list
+val predefinedPaymentMethods = listOf("Cash", "Card", "PayPal", "Other")
 
 data class CartUiState(
-    // Cart items and totals
     val items: List<CartItem> = emptyList(),
     val subtotal: Double = 0.0,
-    val taxRate: Double = 0.0, // Example: 0.07 for 7% tax.
+    val taxRate: Double = 0.0,
     val taxAmount: Double = 0.0,
     val total: Double = 0.0,
-
-    // Checkout specific state
     val customers: List<Customer> = emptyList(),
     val selectedCustomerId: Long? = null,
     val selectedPaymentMethod: String = predefinedPaymentMethods.first(),
@@ -37,7 +35,7 @@ sealed class CartEvent {
     data class QuantityUpdated(val productName: String) : CartEvent()
     data class ItemRemoved(val productName: String) : CartEvent()
     data class StockUnavailable(val productName: String, val requested: Int, val available: Int) : CartEvent()
-    data class OrderPlaced(val orderId: Long, val totalAmount: Double) : CartEvent() // Carries orderId for navigation
+    data class OrderPlaced(val orderId: Long, val totalAmount: Double) : CartEvent()
     data class Error(val message: String) : CartEvent()
     object CartCleared : CartEvent()
 }
@@ -46,7 +44,8 @@ sealed class CartEvent {
 class CartViewModel @Inject constructor(
     private val productRepository: ProductRepository,
     private val orderRepository: OrderRepository,
-    private val customerRepository: CustomerRepository // Added
+    private val customerRepository: CustomerRepository,
+    private val shopInfoRepository: ShopInfoRepository
 ) : ViewModel() {
 
     private val _cartUiState = MutableStateFlow(CartUiState())
@@ -56,24 +55,32 @@ class CartViewModel @Inject constructor(
     val cartEvents = _cartEvents.asSharedFlow()
 
     init {
-        loadCustomers()
-        // Initialize with default tax rate from settings if available, or a default
-        // For now, if ShopInfo provides tax, use it.
-        // This requires ShopInfoRepository, or tax is passed differently.
-        // Let's assume tax rate is managed by settings or a default for now.
+        loadInitialData()
     }
 
-    private fun loadCustomers() {
+    private fun loadInitialData() {
         viewModelScope.launch {
-            _cartUiState.update { it.copy(isLoadingCustomers = true) }
-            customerRepository.getAllCustomers()
-                .catch { e ->
-                    _cartEvents.emit(CartEvent.Error("Failed to load customers: ${e.message}"))
-                    _cartUiState.update { it.copy(isLoadingCustomers = false) }
-                }
-                .collect { customers ->
-                    _cartUiState.update { it.copy(customers = customers, isLoadingCustomers = false) }
-                }
+            _cartUiState.update { it.copy(isLoadingCustomers = true) } // Combined loading state for initial data
+            launch {
+                customerRepository.getAllCustomers()
+                    .catch { e ->
+                        _cartEvents.emit(CartEvent.Error("Failed to load customers: ${e.message}"))
+                        _cartUiState.update { it.copy(isLoadingCustomers = false) }
+                    }
+                    .collect { customers ->
+                        _cartUiState.update { it.copy(customers = customers, isLoadingCustomers = false) }
+                    }
+            }
+            launch {
+                shopInfoRepository.getShopInfo()
+                    .catch { e -> _cartEvents.emit(CartEvent.Error("Failed to load shop info for tax rate: ${e.message}")) }
+                    .collect { shopInfo ->
+                        // Ensure shopInfo is not null before accessing taxPercentage,
+                        // although ShopInfoRepository provides a default.
+                        _cartUiState.update { it.copy(taxRate = shopInfo.taxPercentage) }
+                        recalculateTotals()
+                    }
+            }
         }
     }
 
@@ -97,7 +104,6 @@ class CartViewModel @Inject constructor(
     fun addProductToCart(product: Product, quantityToAdd: Int = 1) {
         viewModelScope.launch {
             if (quantityToAdd <= 0) return@launch
-
             val availableStock = product.quantity
             val existingCartItem = _cartUiState.value.items.find { it.productId == product.id }
             val currentQuantityInCart = existingCartItem?.quantityInCart ?: 0
@@ -116,12 +122,8 @@ class CartViewModel @Inject constructor(
                 _cartEvents.emit(CartEvent.QuantityUpdated(product.name))
             } else {
                 val newCartItem = CartItem(
-                    productId = product.id,
-                    productName = product.name,
-                    productSku = product.sku,
-                    price = product.price,
-                    quantityInCart = quantityToAdd,
-                    availableStock = product.quantity
+                    productId = product.id, productName = product.name, productSku = product.sku,
+                    price = product.price, quantityInCart = quantityToAdd, availableStock = product.quantity
                 )
                 _cartUiState.update { it.copy(items = it.items + newCartItem) }
                 _cartEvents.emit(CartEvent.ItemAdded(product.name))
@@ -165,27 +167,18 @@ class CartViewModel @Inject constructor(
         _cartUiState.update { currentState ->
             currentState.copy(items = currentState.items.filterNot { it.productId == productId })
         }
-        itemToRemove?.let {
-            viewModelScope.launch { _cartEvents.emit(CartEvent.ItemRemoved(it.productName)) }
-        }
+        itemToRemove?.let { viewModelScope.launch { _cartEvents.emit(CartEvent.ItemRemoved(it.productName)) } }
         recalculateTotals()
     }
 
     fun clearCart() {
-        // Preserve customer, payment method, and tax rate during cart clear
         _cartUiState.update { currentState ->
-            currentState.copy(
-                items = emptyList(),
-                subtotal = 0.0,
-                taxAmount = 0.0,
-                total = 0.0
-                // isLoadingCustomers, customers, selectedCustomerId, selectedPaymentMethod, isGuestCheckout, taxRate remain
-            )
+            currentState.copy(items = emptyList(), subtotal = 0.0, taxAmount = 0.0, total = 0.0)
         }
         viewModelScope.launch { _cartEvents.emit(CartEvent.CartCleared) }
     }
 
-    fun setTaxRate(newRate: Double) { // Rate as decimal, e.g., 0.07 for 7%
+    fun setTaxRate(newRate: Double) {
         if (newRate >= 0.0 && newRate <= 1.0) {
             _cartUiState.update { it.copy(taxRate = newRate) }
             recalculateTotals()
@@ -223,13 +216,12 @@ class CartViewModel @Inject constructor(
                 }
             }
 
-            // State might have changed due to stock corrections, re-evaluate
             val validatedCartState = _cartUiState.value
             if (stockIssueFound) {
-                 _cartUiState.update { it.copy(isLoadingCheckout = false) }
+                _cartUiState.update { it.copy(isLoadingCheckout = false) }
                 _cartEvents.emit(CartEvent.Error("Stock levels changed. Please review your cart."))
                 if (validatedCartState.items.isEmpty()) {
-                     _cartEvents.emit(CartEvent.Error("Cart became empty due to stock adjustments."))
+                    _cartEvents.emit(CartEvent.Error("Cart became empty due to stock adjustments."))
                 }
                 return@launch
             }
@@ -241,11 +233,8 @@ class CartViewModel @Inject constructor(
             )
             val orderItems = validatedCartState.items.map { cartItem ->
                 com.example.jetpackpos.data.model.OrderItem(
-                    orderId = 0, // Will be set by DAO
-                    productId = cartItem.productId,
-                    quantitySold = cartItem.quantityInCart,
-                    priceAtPurchase = cartItem.price,
-                    productNameAtPurchase = cartItem.productName,
+                    orderId = 0, productId = cartItem.productId, quantitySold = cartItem.quantityInCart,
+                    priceAtPurchase = cartItem.price, productNameAtPurchase = cartItem.productName,
                     productSkuAtPurchase = cartItem.productSku
                 )
             }
@@ -259,9 +248,13 @@ class CartViewModel @Inject constructor(
                         productRepository.updateStock(cartItem.productId, newQuantity.coerceAtLeast(0))
                     }
                 }
+                // Do not clear customer/payment method/tax rate here, only items and totals
+                _cartUiState.update { cs ->
+                    cs.copy(items = emptyList(), subtotal = 0.0, taxAmount = 0.0, total = 0.0, isLoadingCheckout = false)
+                }
                 _cartEvents.emit(CartEvent.OrderPlaced(newOrderId, validatedCartState.total))
-                clearCart() // Clear cart items, but keep customer/payment method selection for next potential order
-                 _cartUiState.update { it.copy(isLoadingCheckout = false) }
+                // clearCart() was too aggressive, it reset taxRate and selections.
+                // The line above is a more targeted clear for after checkout.
 
             } catch (e: Exception) {
                 _cartUiState.update { it.copy(isLoadingCheckout = false) }

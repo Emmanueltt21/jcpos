@@ -14,18 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import android.Manifest
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -36,18 +32,17 @@ import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.jetpackpos.BuildConfig // To get applicationId for FileProvider
 import com.example.jetpackpos.ui.viewmodel.AddEditProductEvent
 import com.example.jetpackpos.ui.viewmodel.AddEditProductViewModel
 import kotlinx.coroutines.flow.collectLatest
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import java.util.Objects
 
-
 // Helper function to create image URI for camera
-/*fun createImageUriOLd(context: android.content.Context): Uri {
+fun createImageUri(context: android.content.Context): Uri {
     val imageFolder = File(context.cacheDir, "images")
     imageFolder.mkdirs()
     val file = File(imageFolder, "JPEG_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}_.jpg")
@@ -55,15 +50,7 @@ import java.util.Objects
         Objects.requireNonNull(context),
         BuildConfig.APPLICATION_ID + ".provider", file
     )
-}*/
-
-fun createImageUri(context: android.content.Context, authority: String): Uri {
-    val imageFolder = File(context.cacheDir, "images")
-    imageFolder.mkdirs()
-    val file = File(imageFolder, "JPEG_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}_.jpg")
-    return FileProvider.getUriForFile(context, authority, file)
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,8 +89,7 @@ fun AddEditProductScreen(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-           // tempImageUri = createImageUri(context) // Create URI before launching camera
-            tempImageUri = createImageUri(context, "com.example.jetpackpos.provider")
+            tempImageUri = createImageUri(context) // Create URI before launching camera
             cameraLauncher.launch(tempImageUri)
         } else {
             // Handle permission denial - e.g., show a snackbar
@@ -162,9 +148,7 @@ fun AddEditProductScreen(
     ) { paddingValues ->
         // Show loading indicator when fetching product for editing
         if (formState.isLoading && formState.isEditing && formState.currentProductId != null) {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
@@ -236,9 +220,7 @@ fun AddEditProductScreen(
                         value = formState.category,
                         onValueChange = viewModel::onCategoryChange, // Allows typing new category
                         label = { Text("Category*") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(), // Important for positioning the dropdown
+                        modifier = Modifier.fillMaxWidth().menuAnchor(), // Important for positioning the dropdown
                         isError = formState.categoryError != null,
                         supportingText = { formState.categoryError?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded) },
@@ -276,9 +258,7 @@ fun AddEditProductScreen(
                     value = formState.description,
                     onValueChange = viewModel::onDescriptionChange,
                     label = { Text("Description (Optional)") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
+                    modifier = Modifier.fillMaxWidth().height(120.dp),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     maxLines = 5
                 )
@@ -302,11 +282,11 @@ fun AddEditProductScreen(
                             // For now, use buttons below
                         },
                     contentScale = ContentScale.Crop,
-                    /*error = { // Display a placeholder if imageUri is null or loading fails
+                    error = { // Display a placeholder if imageUri is null or loading fails
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Icon(Icons.Filled.Image, "No image selected", modifier = Modifier.size(48.dp))
                         }
-                    }*/
+                    }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -339,15 +319,14 @@ fun AddEditProductScreen(
 
 
                 // Placeholder for Scan button (remains conceptual for now)
+import android.widget.Toast // For conceptual scan button
 
                  Button(
                     onClick = {
                         Toast.makeText(context, "Scan Product Code - Not Implemented", Toast.LENGTH_SHORT).show()
                      },
                     enabled = false,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                 ) {
                     Text("Scan Product Code (Future)")
                 }

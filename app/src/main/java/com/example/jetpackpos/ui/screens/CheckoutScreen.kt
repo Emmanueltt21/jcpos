@@ -18,7 +18,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.jetpackpos.data.model.Customer
 import com.example.jetpackpos.ui.navigation.OrderStatusScreen // For navigation after checkout
-import com.example.jetpackpos.ui.navigation.Screen
 import com.example.jetpackpos.ui.screens.common.CartSummaryView
 import com.example.jetpackpos.ui.viewmodel.CartEvent
 import com.example.jetpackpos.ui.viewmodel.CartViewModel
@@ -31,7 +30,7 @@ import java.util.Locale
 @Composable
 fun CheckoutScreen(
     navController: NavController,
-    cartViewModel: CartViewModel = hiltViewModel()
+    cartViewModel: CartViewModel // Now passed as a parameter
 ) {
     val cartState by cartViewModel.cartUiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }

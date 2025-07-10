@@ -1,11 +1,5 @@
 package com.example.jetpackpos.ui.navigation
 
-import com.example.jetpackpos.ui.screens.AboutScreen
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import com.example.jetpackpos.ui.screens.* // Import all screens
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -17,9 +11,22 @@ import com.example.jetpackpos.ui.screens.AddEditProductScreen
 import com.example.jetpackpos.ui.screens.InventoryScreen
 import com.example.jetpackpos.ui.screens.OrderDetailsScreen
 import com.example.jetpackpos.ui.screens.ProductDetailsScreen
+import com.example.jetpackpos.ui.screens.SalesScreen
 import com.example.jetpackpos.ui.screens.SettingsScreen
 import com.example.jetpackpos.ui.screens.TransactionsScreen
 
+@Composable
+fun AppNavigationGraph(
+    navController: NavHostController,
+    startDestination: String, // Added startDestination parameter
+import com.example.jetpackpos.ui.screens.AboutScreen
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.runtime.remember // Added import
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import com.example.jetpackpos.ui.screens.* // Import all screens
 
 @Composable
 fun AppNavigationGraph(
@@ -38,8 +45,23 @@ fun AppNavigationGraph(
         composable(Screen.Inventory.route) {
             InventoryScreen(navController)
         }
-        composable(Screen.POS.route) {
-            POSScreen(navController) // Updated to POSScreen
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.navigation
+import com.example.jetpackpos.ui.viewmodel.CartViewModel
+import com.example.jetpackpos.ui.viewmodel.ProductListViewModel
+
+        navigation(startDestination = Screen.POS.route, route = NavGraphRoutes.POS_CHECKOUT_GRAPH) {
+            composable(Screen.POS.route) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(NavGraphRoutes.POS_CHECKOUT_GRAPH) }
+                val cartViewModel: CartViewModel = hiltViewModel(parentEntry)
+                val productListViewModel: ProductListViewModel = hiltViewModel() // POS still needs its own ProductListViewModel
+                POSScreen(navController, productListViewModel, cartViewModel)
+            }
+            composable(Checkout.route) { backStackEntry -> // Renamed from CartDetails.route
+                val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(NavGraphRoutes.POS_CHECKOUT_GRAPH) }
+                val cartViewModel: CartViewModel = hiltViewModel(parentEntry)
+                CheckoutScreen(navController, cartViewModel) // Renamed from CartDetailsScreen
+            }
         }
         composable(Screen.Transactions.route) {
             TransactionsScreen(navController)

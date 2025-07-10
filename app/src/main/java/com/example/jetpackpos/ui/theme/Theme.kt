@@ -1,6 +1,5 @@
 package com.example.jetpackpos.ui.theme
 
-import androidx.compose.runtime.remember
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -38,6 +37,7 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+import androidx.compose.runtime.remember
 
 @Composable
 fun JetpackPOSTheme(

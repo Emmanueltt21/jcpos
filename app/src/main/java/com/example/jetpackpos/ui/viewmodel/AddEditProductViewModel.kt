@@ -1,6 +1,5 @@
 package com.example.jetpackpos.ui.viewmodel
 
-import com.example.jetpackpos.data.repository.CategoryRepository
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,9 +11,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.update
 
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -49,6 +46,7 @@ sealed class AddEditProductEvent {
     data class Error(val message: String) : AddEditProductEvent()
 }
 
+import com.example.jetpackpos.data.repository.CategoryRepository
 
 @HiltViewModel
 class AddEditProductViewModel @Inject constructor(

@@ -1,7 +1,5 @@
 package com.example.jetpackpos.ui.screens
 
-import coil.compose.AsyncImage
-import androidx.compose.ui.layout.ContentScale as ImageContentScale // Alias for clarity if needed
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.example.jetpackpos.data.model.Product
+import com.example.jetpackpos.ui.navigation.CartDetails
 import com.example.jetpackpos.ui.viewmodel.CartEvent
 import com.example.jetpackpos.ui.viewmodel.CartViewModel
 import com.example.jetpackpos.ui.viewmodel.ProductListUiState
@@ -37,10 +35,10 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun POSScreen( // Renamed from SalesScreen
+fun POSScreen(
     navController: NavController,
-    productListViewModel: ProductListViewModel = hiltViewModel(),
-    cartViewModel: CartViewModel = hiltViewModel()
+    productListViewModel: ProductListViewModel = hiltViewModel(), // Can still get its own PLVM
+    cartViewModel: CartViewModel // Now passed as a parameter
 ) {
     val productListState by productListViewModel.productsUiState.collectAsState()
     val cartState by cartViewModel.cartUiState.collectAsState()
@@ -217,31 +215,25 @@ fun ProductGridItem(
                     modifier = Modifier
                         .weight(1f) // Image takes most space
                         .fillMaxWidth()
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale as ImageContentScale // Alias for clarity if needed
 
                         .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), RoundedCornerShape(4.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-
-
                     AsyncImage(
                         model = product.imageUri,
                         contentDescription = product.name,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ImageContentScale.Crop,
-                    )
-                    AsyncImage(
-                        model = product.imageUri,
-                        contentDescription = product.name,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ImageContentScale.Crop,
-                       /* error = { // Fallback to placeholder icon
+                        error = { // Fallback to placeholder icon
                             Icon(
                                 imageVector = Icons.Filled.Image,
                                 contentDescription = "Product Image Placeholder",
                                 modifier = Modifier.size(48.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        }*/
+                        }
                     )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
