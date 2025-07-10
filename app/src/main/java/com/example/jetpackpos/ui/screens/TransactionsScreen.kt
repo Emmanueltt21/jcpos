@@ -4,13 +4,21 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions // Moved
+import androidx.compose.material.icons.Icons // Moved
+import androidx.compose.material.icons.filled.Close // Moved
+import androidx.compose.material.icons.filled.Person // Moved
+import androidx.compose.material.icons.filled.Search // Moved
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember // Moved (already present but good to ensure)
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction // Moved
+import androidx.compose.ui.text.style.TextAlign // Moved
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,14 +36,6 @@ import java.util.Locale
 @Composable
 fun TransactionsScreen(
     navController: NavController,
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Person // For customer icon placeholder
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
-
     viewModel: TransactionViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -46,11 +46,11 @@ import androidx.compose.ui.text.style.TextAlign
             TopAppBar(title = { Text("Transaction History") })
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) { // Changed Box to Column
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = viewModel::onSearchQueryChange,
-                label = { Text("Search by Order ID or Date part") }, // Updated label
+                label = { Text("Search by Order ID or Date part") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -67,7 +67,7 @@ import androidx.compose.ui.text.style.TextAlign
             )
 
             Box(
-                modifier = Modifier.weight(1f) // Ensure LazyColumn takes remaining space
+                modifier = Modifier.weight(1f)
             ) {
                 when (val state = uiState) {
                     is TransactionListUiState.Loading -> {
@@ -103,6 +103,7 @@ import androidx.compose.ui.text.style.TextAlign
                                         navController.navigate(Screen.OrderDetails.routeWithArg(orderWithItems.order.id))
                                     }
                                 )
+                                }
                             }
                         }
                     }
@@ -131,10 +132,9 @@ fun TransactionListItem(
                 .padding(16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
-            // horizontalArrangement = Arrangement.SpaceBetween // Let items flow naturally
         ) {
             Icon(
-                imageVector = Icons.Filled.Person, // Customer icon placeholder
+                imageVector = Icons.Filled.Person,
                 contentDescription = "Customer",
                 modifier = Modifier.size(40.dp).padding(end = 12.dp),
                 tint = MaterialTheme.colorScheme.secondary

@@ -5,38 +5,30 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetpackpos.data.model.Product
 import com.example.jetpackpos.data.repository.ProductRepository
-import com.example.jetpackpos.ui.navigation.Screen
+import com.example.jetpackpos.ui.navigation.Screen // Corrected from AddEditProduct to Screen.AddEditProduct
+import com.example.jetpackpos.data.repository.CategoryRepository // Moved to top
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
-
+import kotlinx.coroutines.flow.* // Wildcard for flow operators
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ProductFormState(
     val name: String = "",
-    val price: String = "", // Use String for input, convert to Double for saving
+    val price: String = "",
     val sku: String = "",
-    val quantity: String = "", // Use String for input, convert to Int for saving
+    val quantity: String = "",
     val category: String = "",
-    val description: String = "", // New field
+    val description: String = "",
     val imageUri: String? = null,
-
-    // Category suggestions
     val categories: List<com.example.jetpackpos.data.model.Category> = emptyList(),
     val isLoadingCategories: Boolean = false,
-
     val nameError: String? = null,
     val priceError: String? = null,
     val skuError: String? = null,
     val quantityError: String? = null,
     val categoryError: String? = null,
     val generalError: String? = null,
-
-    val isLoading: Boolean = false, // For loading product details or saving
+    val isLoading: Boolean = false,
     val isEditing: Boolean = false,
     val currentProductId: Long? = null
 )
@@ -46,17 +38,15 @@ sealed class AddEditProductEvent {
     data class Error(val message: String) : AddEditProductEvent()
 }
 
-import com.example.jetpackpos.data.repository.CategoryRepository
-
 @HiltViewModel
 class AddEditProductViewModel @Inject constructor(
     private val productRepository: ProductRepository,
-    private val categoryRepository: CategoryRepository, // Injected
+    private val categoryRepository: CategoryRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _formState = MutableStateFlow(ProductFormState())
-    val formState = _formState.asStateFlow()
+    val formState: StateFlow<ProductFormState> = _formState.asStateFlow()
 
     private val _eventFlow = MutableSharedFlow<AddEditProductEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
@@ -68,7 +58,7 @@ class AddEditProductViewModel @Inject constructor(
             _formState.value = _formState.value.copy(isLoading = true, isEditing = true, currentProductId = currentProductId)
             loadProduct(currentProductId)
         }
-        loadCategories() // Load categories on init
+        loadCategories()
     }
 
     private fun loadCategories() {
@@ -76,7 +66,6 @@ class AddEditProductViewModel @Inject constructor(
             _formState.update { it.copy(isLoadingCategories = true) }
             categoryRepository.getAllCategories()
                 .catch { e ->
-                    // Handle error, maybe emit an event or update a general error in formState
                     _formState.update { it.copy(isLoadingCategories = false, generalError = "Failed to load categories: ${e.message}") }
                 }
                 .collect { categories ->
@@ -86,50 +75,51 @@ class AddEditProductViewModel @Inject constructor(
     }
 
     fun onNameChange(name: String) {
-        _formState.value = _formState.value.copy(name = name, nameError = null, generalError = null)
+        _formState.update { it.copy(name = name, nameError = null, generalError = null) }
     }
 
     fun onPriceChange(price: String) {
-        _formState.value = _formState.value.copy(price = price, priceError = null, generalError = null)
+        _formState.update { it.copy(price = price, priceError = null, generalError = null) }
     }
 
     fun onSkuChange(sku: String) {
-        _formState.value = _formState.value.copy(sku = sku, skuError = null, generalError = null)
+        _formState.update { it.copy(sku = sku, skuError = null, generalError = null) }
     }
 
     fun onQuantityChange(quantity: String) {
-        _formState.value = _formState.value.copy(quantity = quantity, quantityError = null, generalError = null)
+        _formState.update { it.copy(quantity = quantity, quantityError = null, generalError = null) }
     }
 
     fun onCategoryChange(category: String) {
-        _formState.value = _formState.value.copy(category = category, categoryError = null, generalError = null)
+        _formState.update { it.copy(category = category, categoryError = null, generalError = null) }
     }
 
     fun onDescriptionChange(description: String) {
-        _formState.value = _formState.value.copy(description = description, generalError = null)
+        _formState.update { it.copy(description = description, generalError = null) }
     }
 
     fun onImageUriChange(uri: String?) {
-        _formState.value = _formState.value.copy(imageUri = uri)
+        _formState.update { it.copy(imageUri = uri) }
     }
-
 
     private fun loadProduct(productId: Long) {
         viewModelScope.launch {
             val product = productRepository.getProductById(productId).firstOrNull()
             if (product != null) {
-                _formState.value = _formState.value.copy(
-                    name = product.name,
-                    price = product.price.toString(),
-                    sku = product.sku,
-                    quantity = product.quantity.toString(),
-                    category = product.category,
-                    description = product.description ?: "",
-                    imageUri = product.imageUri,
-                    isLoading = false
-                )
+                _formState.update {
+                    it.copy(
+                        name = product.name,
+                        price = product.price.toString(),
+                        sku = product.sku,
+                        quantity = product.quantity.toString(),
+                        category = product.category,
+                        description = product.description ?: "",
+                        imageUri = product.imageUri,
+                        isLoading = false
+                    )
+                }
             } else {
-                _formState.value = _formState.value.copy(isLoading = false, generalError = "Failed to load product.")
+                _formState.update { it.copy(isLoading = false, generalError = "Failed to load product.") }
                 _eventFlow.emit(AddEditProductEvent.Error("Product not found."))
             }
         }
@@ -139,7 +129,7 @@ class AddEditProductViewModel @Inject constructor(
         val currentFormState = _formState.value
         if (!validateForm(currentFormState)) return
 
-        _formState.value = currentFormState.copy(isLoading = true, generalError = null)
+        _formState.update { it.copy(isLoading = true, generalError = null) }
 
         viewModelScope.launch {
             try {
@@ -147,23 +137,23 @@ class AddEditProductViewModel @Inject constructor(
                 val quantityInt = currentFormState.quantity.toIntOrNull()
 
                 if (priceDouble == null || quantityInt == null) {
-                    _formState.value = _formState.value.copy(isLoading = false, generalError = "Invalid price or quantity format.")
+                    _formState.update { it.copy(isLoading = false, generalError = "Invalid price or quantity format.") }
                     return@launch
                 }
 
-                // SKU Uniqueness Check
                 if (productRepository.isSkuExisting(currentFormState.sku, currentFormState.currentProductId)) {
-                     _formState.value = _formState.value.copy(
-                        isLoading = false,
-                        skuError = "This SKU already exists. Please use a unique SKU.",
-                        generalError = "SKU already exists."
-                    )
+                     _formState.update {
+                        it.copy(
+                            isLoading = false,
+                            skuError = "This SKU already exists. Please use a unique SKU.",
+                            generalError = "SKU already exists."
+                        )
+                    }
                     return@launch
                 }
-
 
                 val product = Product(
-                    id = currentFormState.currentProductId ?: 0, // If new, ID is 0 for auto-generate
+                    id = currentFormState.currentProductId ?: 0,
                     name = currentFormState.name.trim(),
                     price = priceDouble,
                     sku = currentFormState.sku.trim(),
@@ -180,52 +170,30 @@ class AddEditProductViewModel @Inject constructor(
                 }
                 _eventFlow.emit(AddEditProductEvent.ProductSaved)
             } catch (e: Exception) {
-                _formState.value = _formState.value.copy(isLoading = false, generalError = "Error saving product: ${e.message}")
+                _formState.update { it.copy(isLoading = false, generalError = "Error saving product: ${e.message}") }
                 _eventFlow.emit(AddEditProductEvent.Error("Failed to save product: ${e.message}"))
+            } finally {
+                 _formState.update { it.copy(isLoading = false) } // Ensure isLoading is reset
             }
         }
     }
 
     private fun validateForm(state: ProductFormState): Boolean {
         var isValid = true
-        var newNameError: String? = null
-        var newPriceError: String? = null
-        var newSkuError: String? = null
-        var newQuantityError: String? = null
-        var newCategoryError: String? = null
-
-        if (state.name.isBlank()) {
-            newNameError = "Product name cannot be empty."
-            isValid = false
-        }
-        if (state.sku.isBlank()) {
-            newSkuError = "SKU cannot be empty."
-            isValid = false
-        }
-        if (state.category.isBlank()) {
-            newCategoryError = "Category cannot be empty."
-            isValid = false
-        }
-
-        val priceDouble = state.price.toDoubleOrNull()
-        if (state.price.isBlank() || priceDouble == null || priceDouble < 0) {
-            newPriceError = "Enter a valid non-negative price."
-            isValid = false
-        }
-
-        val quantityInt = state.quantity.toIntOrNull()
-        if (state.quantity.isBlank() || quantityInt == null || quantityInt < 0) {
-            newQuantityError = "Enter a valid non-negative quantity."
-            isValid = false
-        }
-
-        _formState.value = state.copy(
-            nameError = newNameError,
-            priceError = newPriceError,
-            skuError = newSkuError,
-            quantityError = newQuantityError,
-            categoryError = newCategoryError
+        val updates = state.copy( // Create a copy to accumulate error changes
+            nameError = if (state.name.isBlank()) "Product name cannot be empty." else null,
+            skuError = if (state.sku.isBlank()) "SKU cannot be empty." else null,
+            categoryError = if (state.category.isBlank()) "Category cannot be empty." else null,
+            priceError = state.price.toDoubleOrNull()?.takeIf { it >= 0 }?.let { null } ?: "Enter a valid non-negative price.",
+            quantityError = state.quantity.toIntOrNull()?.takeIf { it >= 0 }?.let { null } ?: "Enter a valid non-negative quantity."
         )
+
+        if (updates.nameError != null || updates.skuError != null || updates.categoryError != null ||
+            updates.priceError != null || updates.quantityError != null) {
+            isValid = false
+        }
+
+        _formState.value = updates // Apply all error updates at once
         return isValid
     }
 }

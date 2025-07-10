@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale // For AsyncImage
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -22,8 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage // Moved to top
 import com.example.jetpackpos.data.model.Product
-import com.example.jetpackpos.ui.navigation.CartDetails
+import com.example.jetpackpos.ui.navigation.Checkout // Corrected direct import
 import com.example.jetpackpos.ui.viewmodel.CartEvent
 import com.example.jetpackpos.ui.viewmodel.CartViewModel
 import com.example.jetpackpos.ui.viewmodel.ProductListUiState
@@ -37,8 +39,8 @@ import java.util.Locale
 @Composable
 fun POSScreen(
     navController: NavController,
-    productListViewModel: ProductListViewModel = hiltViewModel(), // Can still get its own PLVM
-    cartViewModel: CartViewModel // Now passed as a parameter
+    productListViewModel: ProductListViewModel = hiltViewModel(),
+    cartViewModel: CartViewModel
 ) {
     val productListState by productListViewModel.productsUiState.collectAsState()
     val cartState by cartViewModel.cartUiState.collectAsState()
@@ -75,7 +77,7 @@ fun POSScreen(
                             }
                         }
                     ) {
-                        IconButton(onClick = { navController.navigate(com.example.jetpackpos.ui.navigation.Checkout.route) }) { // Updated to Checkout.route
+                        IconButton(onClick = { navController.navigate(Checkout.route) }) {
                             Icon(
                                 imageVector = Icons.Filled.ShoppingCart,
                                 contentDescription = "Open Cart"
@@ -91,7 +93,6 @@ fun POSScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Row for Scan button and Total Amount
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -121,7 +122,6 @@ fun POSScreen(
                 )
             }
 
-            // Search Bar
             OutlinedTextField(
                 value = productListViewModel.searchQuery.collectAsState().value,
                 onValueChange = { productListViewModel.onSearchQueryChange(it) },
@@ -141,10 +141,9 @@ fun POSScreen(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search)
             )
 
-            // Product List Area
             Box(
                 modifier = Modifier
-                    .weight(1f) // Takes remaining space below search bar
+                    .weight(1f)
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 when (val state = productListState) {
@@ -163,7 +162,7 @@ fun POSScreen(
                             )
                         } else {
                             LazyVerticalGrid(
-                                columns = GridCells.Fixed(3), // Changed to Fixed(3)
+                                columns = GridCells.Fixed(3),
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp)
@@ -181,7 +180,6 @@ fun POSScreen(
                     }
                 }
             }
-            // Cart Summary Sidebar has been removed from this screen.
         }
     }
 }
@@ -197,7 +195,7 @@ fun ProductGridItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onAddToCart, enabled = product.quantity > 0)
-            .aspectRatio(0.8f), // Adjust aspect ratio for grid item appearance
+            .aspectRatio(0.8f),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (product.quantity > 0) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -210,14 +208,10 @@ fun ProductGridItem(
                     .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Placeholder for Image
                 Box(
                     modifier = Modifier
-                        .weight(1f) // Image takes most space
+                        .weight(1f)
                         .fillMaxWidth()
-import coil.compose.AsyncImage
-import androidx.compose.ui.layout.ContentScale as ImageContentScale // Alias for clarity if needed
-
                         .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), RoundedCornerShape(4.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -225,8 +219,8 @@ import androidx.compose.ui.layout.ContentScale as ImageContentScale // Alias for
                         model = product.imageUri,
                         contentDescription = product.name,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ImageContentScale.Crop,
-                        error = { // Fallback to placeholder icon
+                        contentScale = ContentScale.Crop,
+                        error = {
                             Icon(
                                 imageVector = Icons.Filled.Image,
                                 contentDescription = "Product Image Placeholder",

@@ -1,27 +1,28 @@
 package com.example.jetpackpos.ui.screens
 
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.jetpackpos.data.model.Product
 import com.example.jetpackpos.ui.navigation.Screen
 import com.example.jetpackpos.ui.viewmodel.ProductListUiState
@@ -38,13 +39,8 @@ fun InventoryScreen(
     val uiState by viewModel.productsUiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     var showDeleteDialog by remember { mutableStateOf<Product?>(null) }
+    val context = LocalContext.current
 
-import androidx.compose.material.icons.filled.UploadFile // For Export
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
-
-
-    val context = LocalContext.current // For Toast message
     Scaffold(
         topBar = {
             TopAppBar(
@@ -62,11 +58,6 @@ import androidx.compose.ui.platform.LocalContext
             FloatingActionButton(onClick = { navController.navigate(Screen.AddEditProduct.routeWithArgs()) }) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Product")
             }
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.ImeAction
-
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
@@ -111,7 +102,7 @@ import androidx.compose.ui.text.input.ImeAction
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .padding(16.dp),
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                textAlign = TextAlign.Center
                             )
                         } else {
                             LazyColumn(
@@ -142,27 +133,26 @@ import androidx.compose.ui.text.input.ImeAction
 
         showDeleteDialog?.let { productToDelete ->
             AlertDialog(
-                    onDismissRequest = { showDeleteDialog = null },
-                    title = { Text("Delete Product") },
-                    text = { Text("Are you sure you want to delete '${productToDelete.name}'? This action cannot be undone.") },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                viewModel.deleteProduct(productToDelete)
-                                showDeleteDialog = null
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                        ) {
-                            Text("Delete")
-                        }
-                    },
-                    dismissButton = {
-                        Button(onClick = { showDeleteDialog = null }) {
-                            Text("Cancel")
-                        }
+                onDismissRequest = { showDeleteDialog = null },
+                title = { Text("Delete Product") },
+                text = { Text("Are you sure you want to delete '${productToDelete.name}'? This action cannot be undone.") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteProduct(productToDelete)
+                            showDeleteDialog = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Delete")
                     }
-                )
-            }
+                },
+                dismissButton = {
+                    Button(onClick = { showDeleteDialog = null }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }
@@ -172,13 +162,9 @@ fun ProductListItem(
     product: Product,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-import androidx.compose.material.icons.filled.Image // Placeholder icon
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape // Added import
-
     onClick: () -> Unit
 ) {
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault()) // Adjust locale as needed
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.getDefault())
 
     Card(
         modifier = Modifier
@@ -191,15 +177,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape // Added import
                 .padding(16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
-            // Removed Arrangement.SpaceBetween to allow image placeholder more defined space
         ) {
-            // Placeholder for Image
             Box(
                 modifier = Modifier
-                    .size(64.dp) // Fixed size for the image placeholder
+                    .size(64.dp)
                     .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp)),
-import coil.compose.AsyncImage
-
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
@@ -207,7 +189,7 @@ import coil.compose.AsyncImage
                     contentDescription = product.name,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                    error = { // Fallback to placeholder icon
+                    error = {
                         Icon(
                             imageVector = Icons.Filled.Image,
                             contentDescription = "Product Image Placeholder",
@@ -226,7 +208,7 @@ import coil.compose.AsyncImage
                 Text("Category: ${product.category}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 product.description?.takeIf { it.isNotBlank() }?.let {
                     Text(
-                        "Desc: ${it.take(30)}${if (it.length > 30) "..." else ""}", // Show a snippet
+                        "Desc: ${it.take(30)}${if (it.length > 30) "..." else ""}",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -235,7 +217,7 @@ import coil.compose.AsyncImage
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(horizontalAlignment = Alignment.End, modifier = Modifier.width(IntrinsicSize.Min)) { // Ensure this column doesn't push others too much
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.width(IntrinsicSize.Min)) {
                 Text(
                     currencyFormat.format(product.price),
                     fontWeight = FontWeight.SemiBold,
@@ -243,7 +225,7 @@ import coil.compose.AsyncImage
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text("Qty: ${product.quantity}", fontSize = 14.sp)
-                if (product.quantity < 5) { // Low stock indicator
+                if (product.quantity < 5) {
                     Text(
                         "Low Stock",
                         fontSize = 12.sp,
