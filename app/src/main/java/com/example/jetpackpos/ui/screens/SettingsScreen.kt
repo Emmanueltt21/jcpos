@@ -52,11 +52,15 @@ fun SettingsScreen(
             TopAppBar(title = { Text("Settings") })
         }
     ) { paddingValues ->
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()), // Added this line
             // horizontalAlignment = Alignment.CenterHorizontally, // Keep for global, but specific items might align start
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {

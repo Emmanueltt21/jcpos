@@ -179,21 +179,26 @@ class AddEditProductViewModel @Inject constructor(
     }
 
     private fun validateForm(state: ProductFormState): Boolean {
-        var isValid = true
-        val updates = state.copy( // Create a copy to accumulate error changes
-            nameError = if (state.name.isBlank()) "Product name cannot be empty." else null,
-            skuError = if (state.sku.isBlank()) "SKU cannot be empty." else null,
-            categoryError = if (state.category.isBlank()) "Category cannot be empty." else null,
-            priceError = state.price.toDoubleOrNull()?.takeIf { it >= 0 }?.let { null } ?: "Enter a valid non-negative price.",
-            quantityError = state.quantity.toIntOrNull()?.takeIf { it >= 0 }?.let { null } ?: "Enter a valid non-negative quantity."
+        val nameError = if (state.name.isBlank()) "Product name cannot be empty." else null
+        val skuError = if (state.sku.isBlank()) "SKU cannot be empty." else null
+        val categoryError = if (state.category.isBlank()) "Category cannot be empty." else null
+
+        val priceDouble = state.price.toDoubleOrNull()
+        val priceError = if (priceDouble == null || priceDouble < 0) "Enter a valid non-negative price." else null
+
+        val quantityInt = state.quantity.toIntOrNull()
+        val quantityError = if (quantityInt == null || quantityInt < 0) "Enter a valid non-negative quantity." else null
+
+        val hasError = listOf(nameError, skuError, categoryError, priceError, quantityError).any { it != null }
+
+        _formState.value = state.copy(
+            nameError = nameError,
+            skuError = skuError,
+            categoryError = categoryError,
+            priceError = priceError,
+            quantityError = quantityError
         )
 
-        if (updates.nameError != null || updates.skuError != null || updates.categoryError != null ||
-            updates.priceError != null || updates.quantityError != null) {
-            isValid = false
-        }
-
-        _formState.value = updates // Apply all error updates at once
-        return isValid
+        return !hasError
     }
 }
